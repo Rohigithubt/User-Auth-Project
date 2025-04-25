@@ -3,25 +3,23 @@ import {
 	PASSWORD_RESET_SUCCESS_TEMPLATE,
 	VERIFICATION_EMAIL_TEMPLATE,
 } from "./emailTemplates.js";
-import { mailtrapClient, sender } from "./mailtrap.config.js";
+import { transporter} from "./mailtrap.config.js";
 
 export const sendVerificationEmail = async (email, verificationToken) => {
-	const recipient = [{ email }];
 
 	try {
-		const response = await mailtrapClient.send({
-			from: sender,
-			to: recipient,
+		console.log('email',email);
+		const info = await transporter.sendMail({
+			// from: `"${sender.name}" <${sender.email}>`,
+			to: email,
 			subject: "Verify your email",
 			html: VERIFICATION_EMAIL_TEMPLATE.replace("{verificationCode}", verificationToken),
-			category: "Email Verification",
 		});
 
-		console.log("Email sent successfully", response);
+		console.log("Email sent successfully:", info.messageId);
 	} catch (error) {
-		console.error(`Error sending verification`, error);
-
-		throw new Error(`Error sending verification email: ${error}`);
+		console.error("Error sending verification email:", error.message);
+		throw new Error("Error sending verification email");
 	}
 };
 
@@ -29,8 +27,8 @@ export const sendWelcomeEmail = async (email, name) => {
 	const recipient = [{ email }];
 
 	try {
-		const response = await mailtrapClient.send({
-			from: sender,
+		const response = await transporter.send({
+			from: 'rohit@gmail.com',
 			to: recipient,
 			template_uuid: "e65925d1-a9d1-4a40-ae7c-d92b37d593df",
 			template_variables: {
@@ -51,7 +49,7 @@ export const sendPasswordResetEmail = async (email, resetURL) => {
 	const recipient = [{ email }];
 
 	try {
-		const response = await mailtrapClient.send({
+		const response = await transporter.send({
 			from: sender,
 			to: recipient,
 			subject: "Reset your password",
@@ -69,7 +67,7 @@ export const sendResetSuccessEmail = async (email) => {
 	const recipient = [{ email }];
 
 	try {
-		const response = await mailtrapClient.send({
+		const response = await transporter.send({
 			from: sender,
 			to: recipient,
 			subject: "Password Reset Successful",

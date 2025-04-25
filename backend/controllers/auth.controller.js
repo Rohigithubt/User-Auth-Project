@@ -40,6 +40,7 @@ export const signup = async (req, res) => {
 
 		// jwt
 		generateTokenAndSetCookie(res, user._id);
+		
 
 		await sendVerificationEmail(user.email, verificationToken);
 
@@ -59,21 +60,18 @@ export const signup = async (req, res) => {
 export const verifyEmail = async (req, res) => {
 	const { code } = req.body;
 	try {
-		const user = await User.findOne({
-			verificationToken: code,
-			verificationTokenExpiresAt: { $gt: Date.now() },
-		});
-
+		const user = await User.findOne({verificationToken: code});
+		console.log(user,"user",code)
 		if (!user) {
 			return res.status(400).json({ success: false, message: "Invalid or expired verification code" });
 		}
 
 		user.isVerified = true;
-		user.verificationToken = undefined;
-		user.verificationTokenExpiresAt = undefined;
+		user.verificationToken = '';
+		user.verificationTokenExpiresAt = '';
 		await user.save();
 
-		await sendWelcomeEmail(user.email, user.name);
+		// await sendWelcomeEmail(user.email, user.name);
 
 		res.status(200).json({
 			success: true,
