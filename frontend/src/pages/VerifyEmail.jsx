@@ -101,3 +101,4 @@ const VerifyEmail = () => {
 }
 
 export default VerifyEmail;
+https://github.com/Rohigithubt/mern-advanced-auth/tree/69142ead92ae9d6137a6e2e48abb1a6e53ee8c1f/frontend1
