@@ -8,13 +8,14 @@ const mail = require("../config/mail");
 
 
 module.exports ={
-            register,
-            login,
-            editprofile,
-            updateprofile,
-            destroy,
-            forgetPassword,
-            resetPassword,
+    register,
+    login,
+    editprofile,
+    updateprofile,
+    destroy,
+    forgetPassword,
+    resetPassword,
+    logout,
 
 };
 
@@ -22,7 +23,6 @@ async function register(req,res){
     const{ name , email , password } = req.body;
     try{
         const user = await User.findOne({email});
-        console.log(user,'user');
         if(user){
            return res.status(401).json({ status: true, message: "Email is already in use" });
         }
@@ -156,5 +156,21 @@ async function resetPassword(req, res) {
     } catch (error) {
         console.error('Reset password error:', error);
         res.status(500).json({ error: 'Reset password failed' });
+    }
+}
+
+async function logout(req, res) {
+    try {
+      // Clear the cookie that stores the token/session
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure: true,  // set to true if using https
+        sameSite: 'lax', // or 'strict' based on your frontend setup
+      });
+  
+      return res.status(200).json({ message: 'Logged out successfully' });
+    } catch (error) {
+      console.error('Logout Error:', error);
+      return res.status(500).json({ message: 'Something went wrong during logout' });
     }
 }

@@ -6,9 +6,10 @@ const userApiController =require('../controllers/userApiControllers');
 
 router.post('/register',userApiController.register);
 router.post('/login',userApiController.login);
-router.post('/editprofile',userApiController.editprofile);
-router.post('/updateprofile' ,userApiController.updateprofile);
+router.post('/edit-profile',userApiController.editprofile);
+router.post('/update-profile' ,userApiController.updateprofile);
 router.post('/destroy',userApiController.destroy);
-router.post('/forgetPassword',userApiController.forgetPassword);
-router.post('/resetPassword',userApiController.resetPassword);
+router.post('/forget-password',userApiController.forgetPassword);
+router.post('/reset-password',userApiController.resetPassword);
+router.post('/logout',userApiController.logout);
 module.exports = router ;

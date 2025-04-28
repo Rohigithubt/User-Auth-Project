@@ -1,11 +1,10 @@
 const express = require('express')
 const app = express();
 const dotenv = require('dotenv');
-const router = require('./routes');
 const cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
 const cors = require('cors');  // ✅ Add this
-const apiRoutes= require('./routes/user')
+const apiRoutes= require('./routes')
 
 const port =3000
 
