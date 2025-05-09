@@ -13,6 +13,10 @@ const UserSchema =new Schema({
     password:{
         type:String,
         default :"",
+    },
+    token:{
+        type:String,
+        default :"",
     }
 })
 const User =mongoose.model('User',UserSchema);

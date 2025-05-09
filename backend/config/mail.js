@@ -2,11 +2,17 @@ const nodemailer = require('nodemailer');
 const ejs = require('ejs');
 const path =require('path');
 let transporter  = nodemailer.createTransport({
-    host: "sandbox.smtp.mailtrap.io",
-    port: 587,
-    auth: {
-      user: "b9f4787097d781",
-      pass: "cfc1be598951c3"
+    // host: "sandbox.smtp.mailtrap.io",
+    // port: 2525,
+    // auth: {
+    //   user: "f518e1b7d5854d",
+    //   pass: "75a6ff84dc2f60"
+
+    host: process.env.MAILTRAP_ENDPOINT,
+      port: process.env.MAIL_PORT,
+      auth: {
+        user: process.env.MAILTRAP_USER,
+        pass: process.env.MAILTRAP_PASS,
     } 
   });
   let renderTemplate = (token,relativePath) => {

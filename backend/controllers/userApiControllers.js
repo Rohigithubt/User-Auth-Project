@@ -8,6 +8,7 @@ const mail = require("../config/mail");
 
 
 module.exports ={
+<<<<<<< HEAD
     register,
     login,
     editprofile,
@@ -16,6 +17,16 @@ module.exports ={
     forgetPassword,
     resetPassword,
     logout,
+=======
+            register,
+            login,
+            editprofile,
+            updateprofile,
+            destroy,
+            forgetPassword,
+            resetPassword,
+            logout,
+>>>>>>> e4fc1f5 (updated files)
 
 };
 
@@ -103,6 +114,7 @@ async function destroy(req,res){
 } 
 async function forgetPassword(req, res) {
     try {
+        console.log("object")
         const { email } = req.body;
         const user = await User.findOne({ email})
         if (!user) {

@@ -1,53 +1,69 @@
-import React from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import { Toaster } from 'react-hot-toast'
-import { useAuthStore } from './store/authStore'
-import { useEffect } from 'react'
-import LoginPage from "./pages/LoginPage"
-import DashBoard from "./pages/DashBoard";
-import ForgotPassword from "./pages/ForgotPassword";
-import VerifyEmail from "./pages/VerifyEmail";
-import SignUpPage from "./pages/SignUpPage";
-import DeletePage from "./pages/DeletePage";
-import EditProfile from "./pages/EditProfile";
-import ResetPage from "./pages/ResetPage";
+import React from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import LoginPage from './assets/dist/pages/LoginPage'
+import Signup from './assets/dist/pages/Signup'
+import ForgotPassword from './assets/dist/pages/ForgotPassword'
+import Dashboard from './assets/src/html/dashboard/Dashboard'
+// import Header from './assets/dist/layouts/Header'
+import Sidebar from './assets/src/html/layouts/Sidebar'
+import SidebarMenu from './assets/src/html/layouts/SidebarMenu'
+// import HeaderContent from './assets/src/html/layouts/HeaderContent'
+import SamplePage from './assets/src/html/other/SamplePage'
+import HeadPageMeta from './assets/src/html/layouts/HeadPageMeta'
+import HeadCSS from './assets/src/html/layouts/HeadCSS'
+import Breadcrumb from './assets/src/html/layouts/Breadcrumb'
+import Topbar from './assets/src/html/layouts/Topbar'
+import FooterBlock from './assets/src/html/layouts/FooterBlock'
+import FooterJS from './assets/src/html/layouts/FooterJS'
+import MainFile from './assets/src/html/other/MainFile'
+import Header from './assets/dist/layouts/Header'
+import ProtectedRoute from './assets/src/html/layouts/ProtectedRoute'
+// import MainFile from './assets/src/html/other/MainFile'
 
-
-
-function App() {
-  // const [count, setCount] = useState(0)
-  const [state, setState] = useState("")
-  // const checkAuth = useAuthStore((state) => state.checkAuth);
-
-  // useEffect(() => {
-  //   checkAuth(); // ✅ Restore user session on reload
-  // }, [checkAuth]);
-
+const App = () => {
   return (
     <>
-    <Routes>
-     <Route  exact path="/" element={ <LoginPage />}/>
-     <Route  exact path="/login" element={ <LoginPage />}/>
+      <BrowserRouter>
+        <Routes>
+        {/* <Route path='/' element={<MainFile />} /> */}
+        
+      <Route element={<ProtectedRoute />}>
+        <Route path='/' element={<MainFile />} />
+        <Route path='/dashboard' element={<Dashboard />} />
+        <Route path='/sidebar' element={<Sidebar />} />
+        <Route path='/topbar' element={<Topbar />} />
+        <Route path='/header' element={<Header />} />
+          <Route path='/sidebar-menu' element={<SidebarMenu />} />
+          {/* <Route path='/header-content' element={<HeaderContent />} /> */}
+          <Route path='/sample-page' element={<SamplePage />} />
+          <Route path='/head-pagemeta' element={<HeadPageMeta />} />
+          <Route path='/head-css' element={<HeadCSS />} />
+          <Route path='/Bread-crumb' element={<Breadcrumb />} />
+          <Route path='/footer-block' element={<FooterBlock />} />
+          <Route path='/footer-js' element={<FooterJS />} />
 
-     <Route exact path="/dashboard" element={ <DashBoard />}/>
-     <Route exact path="/signup" element={<SignUpPage />} />
-     <Route exact path="/forgot-password" element={< ForgotPassword />}/>
-     <Route exact path="/verify-email" element={<VerifyEmail />} />
-     <Route exact path="/destroy" element={<DeletePage />} />
-     <Route exact path="/edit-profile" element={<EditProfile />} />
-     <Route exact path="/reset-password" element={<ResetPage />} />
+      </Route>
+
+          <Route path='/login' element={<LoginPage />} />
+          <Route path='/signup' element={<Signup />} />
+          <Route path='/forgot-password' element={<ForgotPassword />} />
+       
 
 
 
 
-    
-     
 
-     </Routes>
+
+
+
+
+          
+
+
+
+
+        </Routes>
+      </BrowserRouter>
     </>
   )
 }

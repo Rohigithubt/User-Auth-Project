@@ -14,7 +14,6 @@ app.use(cors({
     credentials: true,               // if you are using cookies, sessions
   }));
 
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
