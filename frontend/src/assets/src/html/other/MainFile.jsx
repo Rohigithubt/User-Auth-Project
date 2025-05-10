@@ -5,7 +5,7 @@ import { Outlet } from 'react-router-dom';
 import Dashboard from '../dashboard/Dashboard';
 
 const MainFile = () => {
-  console.log("tokennn enter dashboard")
+  // console.log("tokennn enter dashboard")
   return (
     <div className="main-layout" style={{ display: 'flex' }}>
       <Sidebar />

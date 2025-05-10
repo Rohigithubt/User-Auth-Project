@@ -52,15 +52,15 @@ const SidebarMenu = () => {
       </li>
 
       <li className="pc-item">
-        <Link to="/login" className="pc-link">
+        <Link to="/priority" className="pc-link">
           <span className="pc-micon"><i className="ti ti-lock"></i></span>
-          <Link to="/login" className="pc-mtext">Login</Link>
+          <Link to="/priority" className="pc-mtext">Priority</Link>
         </Link>
       </li>
       <li className="pc-item">
-        <Link to="/signup" className="pc-link">
+        <Link to="/task" className="pc-link">
           <span className="pc-micon"><i className="ti ti-user-plus"></i></span>
-          <Link to="/signup" className="pc-mtext">Register</Link>
+          <Link to="/task" className="pc-mtext">Tasks</Link>
         </Link>
       </li>
 

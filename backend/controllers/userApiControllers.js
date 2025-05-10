@@ -8,16 +8,7 @@ const mail = require("../config/mail");
 
 
 module.exports ={
-<<<<<<< HEAD
-    register,
-    login,
-    editprofile,
-    updateprofile,
-    destroy,
-    forgetPassword,
-    resetPassword,
-    logout,
-=======
+  
             register,
             login,
             editprofile,
@@ -26,7 +17,7 @@ module.exports ={
             forgetPassword,
             resetPassword,
             logout,
->>>>>>> e4fc1f5 (updated files)
+
 
 };
 
@@ -64,8 +55,19 @@ async function login(req,res){
             expiresIn: '2h',
         });
 
-        res.status(200).json({status: true, user, token });
+        user.token = token;
+        await user.save();
+        res.status(200).json({
+            status: true,
+            user: {
+              _id: user._id,
+              name: user.name,
+              email: user.email
+            },
+            token
+          });
 
+          
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'Login failed' });
