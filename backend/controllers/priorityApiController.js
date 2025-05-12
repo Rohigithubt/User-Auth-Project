@@ -16,10 +16,11 @@ module.exports ={
 };
 
 async function index(req,res){
-    const{ name } = req.body;
     try{
-        const priority = await Priority.findOne({isDeleted: false});
-        if(priority){
+        const priority = await Priority.find({isDeleted: false});
+                    console.log(priority,"priority")
+
+        if(!priority){
            return res.status(401).json({ status: true, message: "Name is already in use" });
         }
         res.status(200).json({ status: true, data: priority });
