@@ -17,7 +17,7 @@ module.exports ={
 
 async function index(req,res){
     try{
-        const priority = await Priority.find({});
+        const priority = await Priority.find({isDeleted: false});
                     console.log(priority,"priority")
 
         if(!priority){
@@ -76,9 +76,8 @@ async function update(req,res){
 async function destroy(req,res){
     try{ 
     let{priorityId} = req.body
-    console.log(priorityId,'priorityId')
+    
     let  result = await Priority.findByIdAndDelete(priorityId);
-    console.log(result,"result")
     res.status(200).json({ status:true ,message :'Priority deleted successfully ' })
     }catch(error) {
         console.log(error);

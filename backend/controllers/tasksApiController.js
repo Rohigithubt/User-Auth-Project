@@ -15,7 +15,7 @@ module.exports ={
 
 async function index(req,res){
     try{
-        const tasks = await Task.findOne({isDeleted: false});
+        const tasks = await Task.findOne({});
         if(tasks){
            return res.status(401).json({ status: true, data:tasks});
         }
@@ -33,7 +33,7 @@ async function create(req,res){
         if(task){
            return res.status(401).json({ status: true, message: "Task Name is already in use" });
         }
-        await Task.create(req.body);kisi
+        await Task.create(req.body);
         res.status(200).json({ status: true, message: "Task Name created successfully!" });
     }catch(error){
        console.log('Registration failed:',error);

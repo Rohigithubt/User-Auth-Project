@@ -18,7 +18,7 @@ const TaskSchema =new Schema({
     isDeleted:{
         type:Boolean,
         required:true,
-        default:true,
+        default:false,
     },
     priorityId:{
         type: mongoose.Schema.Types.ObjectId,

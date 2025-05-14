@@ -5,6 +5,11 @@ import axios from "axios";
 
 // const API_URL = import.meta.env.MODE === "development" ? import.meta.env.VITE_API_URL : "/api";
 const API_URL = 'http://localhost:3000/api'
+const API_URL2 = 'http://localhost:3000/api/priority'
+// const API_URL3 = 'http://localhost:3000/api/task'
+
+
+
 axios.defaults.withCredentials = true;
 
 export const useAuthStore = create((set) => ({
@@ -52,7 +57,7 @@ export const useAuthStore = create((set) => ({
 			set({ error: "Error logging out", isLoading: false });
 			throw error;
 		}
-	},	
+	},
 	verifyEmail: async (code) => {
 		set({ isLoading: true, error: null });
 		try {
@@ -159,28 +164,28 @@ export const useAuthStore = create((set) => ({
 
 
 	index: async () => {
-	set({ isLoading: true, error: null });
-	try {
-		const response = await axios.post(`${API_URL}`);
-		set({ isLoading: false });
-		return response.data;
-	} catch (error) {
-		set({
-			error: error.response?.data?.error || "Something went wrong",
-			isLoading: false,
-		});
-		throw error;
-	}
-},
+		set({ isLoading: true, error: null });
+		try {
+			const response = await axios.post(`${API_URL2}`);
+			set({ isLoading: false });
+			return response.data;
+		} catch (error) {
+			set({
+				error: error.response?.data?.error || "Something went wrong",
+				isLoading: false,
+			});
+			throw error;
+		}
+	},
 
 
-	create: async (title,isactive ) => {
+	create: async (title, isactive) => {
 		set({ isLoading: true, error: null });
 
 		try {
-			const response = await axios.post(`${API_URL}/create`, { name:title,status:isactive });
-			console.log(response,"response");
-			
+			const response = await axios.post(`${API_URL2}/create`, { name: title, status: isactive });
+			console.log(response, "response");
+
 			set({ isLoading: false });
 			return response.data;
 		} catch (error) {
@@ -196,7 +201,7 @@ export const useAuthStore = create((set) => ({
 		set({ isLoading: true, error: null });
 
 		try {
-			const response = await axios.post(`${API_URL}/edit`, { priorityId });
+			const response = await axios.post(`${API_URL2}/edit`, { priorityId });
 			set({ isLoading: false });
 			return response.data;
 		} catch (error) {
@@ -209,11 +214,11 @@ export const useAuthStore = create((set) => ({
 	},
 
 	update: async (priorityData) => {
-		console.log(priorityData,"priorityData")
+		console.log(priorityData, "priorityData")
 		set({ isLoading: true, error: null });
 
 		try {
-			const response = await axios.post(`${API_URL}/update`, priorityData);
+			const response = await axios.post(`${API_URL2}/update`, priorityData);
 			set({ isLoading: false });
 			return response.data;
 		} catch (error) {
@@ -226,20 +231,108 @@ export const useAuthStore = create((set) => ({
 	},
 
 	destroy: async (priorityId) => {
-  set({ isLoading: true, error: null });
+		set({ isLoading: true, error: null });
 
-  try {
-    const response = await axios.post(`${API_URL}/destroy`, { priorityId });
-    set({ isLoading: false });
-    return response.data;
-  } catch (error) {
-    set({
-      error: error.response?.data?.error || "Failed to delete priority",
-      isLoading: false,
-    });
-    throw error;
-  }
-},
+		try {
+			const response = await axios.post(`${API_URL2}/destroy`, { priorityId });
+			set({ isLoading: false });
+			return response.data;
+		} catch (error) {
+			set({
+				error: error.response?.data?.error || "Failed to delete priority",
+				isLoading: false,
+			});
+			throw error;
+		}
+	},
+
+
+
+	//---------------------------------------------------task authstore.js------------------------------
+
+
+	// index: async () => {
+	// 	set({ isLoading: true, error: null });
+	// 	try {
+	// 		const response = await axios.post(`${API_URL3}`);
+	// 		set({ isLoading: false });
+	// 		return response.data;
+	// 	} catch (error) {
+	// 		set({
+	// 			error: error.response?.data?.error || "Something went wrong",
+	// 			isLoading: false,
+	// 		});
+	// 		throw error;
+	// 	}
+	// },
+
+
+	// create: async (title, isactive) => {
+	// 	set({ isLoading: true, error: null });
+
+	// 	try {
+	// 		const response = await axios.post(`${API_URL3}/create`, { name: title});
+	// 		console.log(response, "response");
+
+	// 		set({ isLoading: false });
+	// 		return response.data;
+	// 	} catch (error) {
+	// 		set({
+	// 			error: error.response?.data?.error || "Failed to create priority",
+	// 			isLoading: false,
+	// 		});
+	// 		throw error;
+	// 	}
+	// },
+
+	// edit: async (taskId) => {
+	// 	set({ isLoading: true, error: null });
+
+	// 	try {
+	// 		const response = await axios.post(`${API_URL3}/edit`, { taskId });
+	// 		set({ isLoading: false });
+	// 		return response.data;
+	// 	} catch (error) {
+	// 		set({
+	// 			error: error.response?.data?.error || "Failed to fetch priority data",
+	// 			isLoading: false,
+	// 		});
+	// 		throw error;
+	// 	}
+	// },
+
+	// update: async (updateData) => {
+	// 	console.log(updateData, "priorityData")
+	// 	set({ isLoading: true, error: null });
+
+	// 	try {
+	// 		const response = await axios.post(`${API_URL3}/update`, updateData);
+	// 		set({ isLoading: false });
+	// 		return response.data;
+	// 	} catch (error) {
+	// 		set({
+	// 			error: error.response?.data?.error || "Failed to update priority",
+	// 			isLoading: false,
+	// 		});
+	// 		throw error;
+	// 	}
+	// },
+
+	// destroy: async (taskId) => {
+	// 	set({ isLoading: true, error: null });
+
+	// 	try {
+	// 		const response = await axios.post(`${API_URL3}/destroy`, { taskId });
+	// 		set({ isLoading: false });
+	// 		return response.data;
+	// 	} catch (error) {
+	// 		set({
+	// 			error: error.response?.data?.error || "Failed to delete priority",
+	// 			isLoading: false,
+	// 		});
+	// 		throw error;
+	// 	}
+	// },
 
 
 }));
