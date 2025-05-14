@@ -4,7 +4,7 @@ import axios from "axios";
 // import { destroy } from "../../../Backend/controllers/userApiControllers";
 
 // const API_URL = import.meta.env.MODE === "development" ? import.meta.env.VITE_API_URL : "/api";
-const API_URL = 'http://localhost:3000/api/priority/'
+const API_URL = 'http://localhost:3000/api'
 axios.defaults.withCredentials = true;
 
 export const useAuthStore = create((set) => ({
@@ -174,11 +174,11 @@ export const useAuthStore = create((set) => ({
 },
 
 
-	create: async (name) => {
+	create: async (title,isactive ) => {
 		set({ isLoading: true, error: null });
 
 		try {
-			const response = await axios.post(`${API_URL}/create`, { name });
+			const response = await axios.post(`${API_URL}/create`, { name:title,status:isactive });
 			console.log(response,"response");
 			
 			set({ isLoading: false });
@@ -209,6 +209,7 @@ export const useAuthStore = create((set) => ({
 	},
 
 	update: async (priorityData) => {
+		console.log(priorityData,"priorityData")
 		set({ isLoading: true, error: null });
 
 		try {
@@ -225,21 +226,20 @@ export const useAuthStore = create((set) => ({
 	},
 
 	destroy: async (priorityId) => {
-		set({ isLoading: true, error: null });
+  set({ isLoading: true, error: null });
 
-		try {
-			const response = await axios.post(`${API_URL}/destroy`, { priorityId });
-			set({ isLoading: false });
-			return response.data;
-		} catch (error) {
-			set({
-				error: error.response?.data?.error || "Failed to delete priority",
-				isLoading: false,
-			});
-			throw error;
-		}
-	},
-
+  try {
+    const response = await axios.post(`${API_URL}/destroy`, { priorityId });
+    set({ isLoading: false });
+    return response.data;
+  } catch (error) {
+    set({
+      error: error.response?.data?.error || "Failed to delete priority",
+      isLoading: false,
+    });
+    throw error;
+  }
+},
 
 
 }));

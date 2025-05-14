@@ -15,7 +15,9 @@ const Priority = () => {
     try {
       const response = await index();
       if (response?.status) {
-        setPriorities(response.data); 
+        setPriorities(response.data);
+       
+        
       }
     } catch (err) {
       console.error("Failed to fetch priorities", err);
@@ -27,23 +29,24 @@ const Priority = () => {
   }, []);
 
   const handleCreateOrUpdate = async (e) => {
-
     e.preventDefault();
-    try {
+    try { 
+      const isactive = status==="Active" ? true : false;
       if (editId) {
-        const response = await update({ priorityId: editId, name: title, status });
+       
+        const response = await update({ priorityId: editId, name: title, status:isactive });
         if (response?.status) {
           resetForm();
           fetchPriorities();
         }
       } else {
-        const response = await create(title);
+        const response = await create(title,isactive);
         if (response?.status) {
-          console.log("created sucessully:");
           
           resetForm();
           fetchPriorities();
         }
+        
       }
     } catch (err) {
       console.error("Create/Update failed", err);
@@ -57,6 +60,9 @@ const Priority = () => {
         const data = response.data;
         setTitle(data.name);
         setStatus(data.status);
+        console.log(data.status,"data.status");
+        
+        
         setEditId(id);
         setShowForm(true);
       }
@@ -65,17 +71,17 @@ const Priority = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    alert("Are you sure you want to delete?");
-    try {
-      const response = await destroy(id);
-      if (response?.status) {
-        fetchPriorities();
-      }
-    } catch (err) {
-      console.error("Delete failed", err);
+const handleDelete = async (id) => {
+  confirm("Are you sure you want to delete?")
+  try {
+    const response = await destroy(id);
+    if (response?.status) {
+      setPriorities((prev) => prev.filter((item) => item._id !== id));
     }
-  };
+  } catch (err) {
+    console.error("Delete failed", err);
+  }
+};
 
   const resetForm = () => {
     setTitle("");
@@ -92,45 +98,81 @@ const Priority = () => {
 
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h4>Priority List</h4>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-          {showForm ? "Cancel" : "Add Priority"}
+        <button
+          className="btn btn-primary"
+          onClick={() => setShowForm(true)}
+          data-bs-toggle="modal"
+          data-bs-target="#priorityModal"
+        >
+          Add Priority
         </button>
       </div>
 
-      {showForm && (
-        <form onSubmit={handleCreateOrUpdate} className="mb-4 border p-3 rounded bg-light">
-          <div className="mb-3">
-            <label className="form-label">Priority Name</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Enter Priority Name"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
+      <div
+        className="modal fade"
+        id="priorityModal"
+        tabIndex="-1"
+        aria-labelledby="priorityModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <form onSubmit={handleCreateOrUpdate} className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="priorityModalLabel">
+                {editId ? "Edit Priority" : "Add Priority"}
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+                onClick={resetForm}
+              ></button>
+            </div>
+            <div className="modal-body">
+              <div className="mb-3">
+                <label className="form-label">Priority Name</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Enter Priority Name"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+              </div>
 
-          <div className="mb-3">
-            <label className="form-label">Status</label>
-            <select
-              className="form-control"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              required
-            >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
-          </div>
+              <div className="mb-3">
+                <label className="form-label">Status</label>
+                <select
+                  className="form-control"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  required
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                data-bs-dismiss="modal"
+                onClick={resetForm}
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-success"  data-bs-dismiss="modal">
+                {editId ? "Update" : "Create"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
 
-          <button type="submit" className="btn btn-success">
-            {editId ? "Update" : "Create"}
-          </button>
-        </form>
-      )}
-
-      <table className="table table-bordered table-striped">
+      <table className="table table-bordered table-striped mt-3">
         <thead>
           <tr>
             <th>S.No</th>
@@ -143,14 +185,23 @@ const Priority = () => {
           {priorities.length > 0 ? (
             priorities.map((item, index) => (
               <tr key={item._id}>
-                <td>{index + 1}</td>
+                <td>{index+1}</td>
                 <td>{item.name}</td>
-                <td>{item.status}</td>
+                <td>{item.status ? 'Active': ' Inactive'}</td>
+                
                 <td>
-                  <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(item._id)}>
+                  <button
+                    className="btn btn-sm btn-warning me-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#priorityModal"
+                    onClick={() => handleEdit(item._id)}
+                  >
                     Edit
                   </button>
-                  <button className="btn btn-sm btn-danger" onClick={() => handleDelete(item._id)}>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => handleDelete(item._id)}
+                  >
                     Delete
                   </button>
                 </td>
@@ -158,7 +209,9 @@ const Priority = () => {
             ))
           ) : (
             <tr>
-              <td colSpan="4" className="text-center">No priorities found</td>
+              <td colSpan="4" className="text-center">
+                No priorities found
+              </td>
             </tr>
           )}
         </tbody>

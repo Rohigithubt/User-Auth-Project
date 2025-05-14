@@ -28,12 +28,14 @@ const App = () => {
   return (
     <>
       <BrowserRouter>
+            <Sidebar />
+              <Topbar />  
         <Routes>
         {/* <Route path='/' element={<MainFile />} /> */}
         
       <Route element={<ProtectedRoute />}>
-        <Route path='/' element={<MainFile />} />
-        <Route path='/dashboard' element={<Dashboard />} />
+        {/* <Route path='/' element={<MainFile />} /> */}
+        <Route path='/' element={<Dashboard />} />
         <Route path='/sidebar' element={<Sidebar />} />
         <Route path='/topbar' element={<Topbar />} />
         <Route path='/header' element={<Header />} />

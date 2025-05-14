@@ -33,7 +33,7 @@ async function create(req,res){
         if(task){
            return res.status(401).json({ status: true, message: "Task Name is already in use" });
         }
-        await Task.create(req.body);
+        await Task.create(req.body);kisi
         res.status(200).json({ status: true, message: "Task Name created successfully!" });
     }catch(error){
        console.log('Registration failed:',error);

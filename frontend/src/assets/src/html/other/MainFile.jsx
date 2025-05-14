@@ -3,6 +3,7 @@ import Sidebar from '../layouts/Sidebar';
 import Topbar from '../layouts/Topbar';
 import { Outlet } from 'react-router-dom';
 import Dashboard from '../dashboard/Dashboard';
+import Priority from '../layouts/Priority';
 
 const MainFile = () => {
   // console.log("tokennn enter dashboard")
@@ -14,6 +15,7 @@ const MainFile = () => {
           <div className="main-content" style={{ padding: '1rem' }}>
           <Dashboard />
           </div>
+          <Priority />
         {/* <div className="main-content" style={{ padding: '1rem' }}>
          
         </div> */}
