@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Pagination from "@mui/material/Pagination";
 import PaginationItem from "@mui/material/PaginationItem";
 import { useAuthStore } from "./store/authStore";
+import Swal from "sweetalert2";
 
 const Priority = () => {
   const [priorities, setPriorities] = useState([]);
@@ -14,7 +15,7 @@ const Priority = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const query = new URLSearchParams(location.search);
-  const page = parseInt(query.get("page") || "1", 7);
+  const page = parseInt(query.get("page") || "1", 10);
   const prioritiesPerPage = 7;
 
   const { index, create, edit, update, destroy } = useAuthStore();
@@ -23,7 +24,10 @@ const Priority = () => {
     try {
       const response = await index();
       if (response?.status) {
-        setPriorities(response.data);
+        const sorted = [...response.data].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setPriorities(sorted);
       }
     } catch (err) {
       console.error("Failed to fetch priorities", err);
@@ -34,10 +38,18 @@ const Priority = () => {
     fetchPriorities();
   }, []);
 
+  const resetForm = () => {
+    setTitle("");
+    setStatus("Active");
+    setEditId(null);
+    setShowForm(false);
+  };
+
   const handleCreateOrUpdate = async (e) => {
     e.preventDefault();
     try {
       const isactive = status === "Active";
+
       if (editId) {
         const response = await update({
           priorityId: editId,
@@ -45,14 +57,19 @@ const Priority = () => {
           status: isactive,
         });
         if (response?.status) {
+          await fetchPriorities();
           resetForm();
-          fetchPriorities();
         }
       } else {
         const response = await create(title, isactive);
         if (response?.status) {
+          await fetchPriorities();
+
           resetForm();
-          fetchPriorities();
+
+          navigate("?page=1", { replace: true });
+
+          window.scrollTo({ top: 0, behavior: "smooth" });
         }
       }
     } catch (err) {
@@ -76,11 +93,28 @@ const Priority = () => {
   };
 
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete?")) {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won’t be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (result.isConfirmed) {
       try {
         const response = await destroy(id);
         if (response?.status) {
-          setPriorities((prev) => prev.filter((item) => item._id !== id));
+          await fetchPriorities();
+          Swal.fire({
+            title: "Deleted!",
+            text: "Priority has been deleted.",
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false,
+          });
         }
       } catch (err) {
         console.error("Delete failed", err);
@@ -88,17 +122,10 @@ const Priority = () => {
     }
   };
 
-  const resetForm = () => {
-    setTitle("");
-    setStatus("Active");
-    setEditId(null);
-    setShowForm(false);
-  };
-
+  const totalPages = Math.ceil(priorities.length / prioritiesPerPage);
   const indexOfLast = page * prioritiesPerPage;
   const indexOfFirst = indexOfLast - prioritiesPerPage;
   const currentPriorities = priorities.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(priorities.length / prioritiesPerPage);
 
   return (
     <div className="pc-container">
@@ -109,9 +136,12 @@ const Priority = () => {
               <h4>Priority List</h4>
               <button
                 className="btn btn-primary"
-                onClick={() => setShowForm(true)}
                 data-bs-toggle="modal"
                 data-bs-target="#priorityModal"
+                onClick={() => {
+                  resetForm();
+                  setShowForm(true);
+                }}
               >
                 Add Priority
               </button>
@@ -125,7 +155,11 @@ const Priority = () => {
               aria-hidden="true"
             >
               <div className="modal-dialog">
-                <form onSubmit={handleCreateOrUpdate} className="modal-content">
+                <form
+                  onSubmit={handleCreateOrUpdate}
+                  className="modal-content"
+                  onClick={(e) => e.stopPropagation()} 
+                >
                   <div className="modal-header">
                     <h5 className="modal-title" id="priorityModalLabel">
                       {editId ? "Edit Priority" : "Add Priority"}
@@ -172,7 +206,11 @@ const Priority = () => {
                     >
                       Cancel
                     </button>
-                    <button type="submit" className="btn btn-success" data-bs-dismiss="modal">
+                    <button
+                      type="submit"
+                      className="btn btn-success"
+                      data-bs-dismiss="modal"
+                    >
                       {editId ? "Update" : "Create"}
                     </button>
                   </div>
@@ -192,7 +230,7 @@ const Priority = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentPriorities.length > 0 ? (
+                    {currentPriorities.length ? (
                       currentPriorities.map((item, idx) => (
                         <tr key={item._id}>
                           <td>{indexOfFirst + idx + 1}</td>
@@ -246,7 +284,6 @@ const Priority = () => {
                 )}
               </div>
             </div>
-
           </div>
         </div>
       </div>

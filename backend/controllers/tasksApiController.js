@@ -13,18 +13,32 @@ module.exports ={
     destroy,
 };
 
-async function index(req,res){
-    try{
-        const tasks = await Task.findOne({});
-        if(tasks){
-           return res.status(401).json({ status: true, data:tasks});
-        }
-        res.status(200).json({ status: true, data: priority });
-    }catch(error){
-       console.log('Registration failed:',error);
-       res.status(500).send("Internal server error");
-    }
+// async function index(req,res){
+//     try{
+//         const tasks = await Task.findOne({});
+//         if(!tasks){
+//            return res.status(401).json({ status: true, data:[]});
+//         }
+//         res.status(200).json({ status: true, data: priority });
+//     }catch(error){
+//        console.log('Registration failed:',error);
+//        res.status(500).send("Internal server error");
+//     }
+// }
+
+async function index(req, res) {
+  try {
+    const tasks = await Task.find({ isDeleted: false }).populate('priorityId');
+    return res.status(200).json({ status: true, data: tasks });
+  } catch (error) {
+    console.error('Fetch tasks failed:', error);
+    res.status(500).send("Internal server error");
+  }
 }
+
+
+
+
 
 async function create(req,res){
     const{ name } = req.body;

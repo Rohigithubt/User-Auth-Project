@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "./store/authStore";
+import { useLocation, useNavigate } from "react-router-dom";
+import Pagination from "@mui/material/Pagination";
+import PaginationItem from "@mui/material/PaginationItem";
+import Swal from "sweetalert2";
 
 const Task = () => {
   const [tasks, setTasks] = useState([]);
@@ -7,21 +11,26 @@ const Task = () => {
   const [taskName, setTaskName] = useState("");
   const [taskDesc, setTaskDesc] = useState("");
   const [taskPriority, setTaskPriority] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editingTaskId, setEditingTaskId] = useState("");
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const page = parseInt(query.get("page") || "1", 10);
+  const tasksPerPage = 7;
 
   const {
     index,
-    priorityIndex,
     taskIndex,
     createTask,
+    editTask,
     updateTask,
     destroyTask,
   } = useAuthStore();
 
   const fetchData = async () => {
     try {
-      const priorityResponse = await priorityIndex();
+      const priorityResponse = await index();
       if (priorityResponse?.status) {
         setPriorities(priorityResponse.data);
       }
@@ -45,11 +54,11 @@ const Task = () => {
       const payload = {
         name: taskName,
         description: taskDesc,
-        priority: taskPriority,
+        priorityId: taskPriority,
       };
 
       const response = editingTaskId
-        ? await updateTask({ ...payload, _id: editingTaskId })
+        ? await updateTask({ ...payload, taskId: editingTaskId })
         : await createTask(payload);
 
       if (response?.status) {
@@ -57,7 +66,6 @@ const Task = () => {
         setTaskDesc("");
         setTaskPriority("");
         setEditingTaskId(null);
-        setShowForm(false);
         fetchData();
       }
     } catch (err) {
@@ -65,45 +73,50 @@ const Task = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchPriorities = async () => {
-      try {
-        const response = await index();
-        if (response?.status) {
-          setPriorities(response.data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch priorities", err);
-      }
-    };
-
-    fetchPriorities();
-  }, []);
-
-  const handleEdit = (task) => {
+  const handleEdit = async(task) => {
     setTaskName(task.name);
     setTaskDesc(task.description);
-    setTaskPriority(task.priority);
+    setTaskPriority(task.priorityId?._id || "");
     setEditingTaskId(task._id);
-    setShowForm(true);
   };
 
   const handleDelete = async (id) => {
-    try {
-      const confirmDelete = window.confirm("Are you sure you want to delete this task?");
-      if (!confirmDelete) return;
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    });
 
-      const response = await destroyTask(id);
-      if (response?.status) {
-        fetchData();
+    if (result.isConfirmed) {
+      try {
+        const response = await destroyTask(id);
+        if (response?.status) {
+          Swal.fire({
+            title: "Deleted!",
+            text: "Your task has been deleted.",
+            icon: "success",
+          });
+          fetchData();
+        }
+      } catch (err) {
+        console.error("Delete failed", err);
+        Swal.fire({
+          title: "Error!",
+          text: "Failed to delete task.",
+          icon: "error",
+        });
       }
-    } catch (err) {
-      console.error("Delete failed", err);
     }
   };
 
-
-
+  const indexOfLast = page * tasksPerPage;
+  const indexOfFirst = indexOfLast - tasksPerPage;
+  const currentTasks = tasks.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(tasks.length / tasksPerPage);
 
   return (
     <div className="pc-container">
@@ -114,15 +127,14 @@ const Task = () => {
               <h4 className="mb-0">Task List</h4>
               <button
                 className="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#taskModal"
                 onClick={() => {
                   setTaskName("");
                   setTaskDesc("");
                   setTaskPriority("");
                   setEditingTaskId(null);
-                  setShowForm(true);
                 }}
-                data-bs-toggle="modal"
-                data-bs-target="#taskModal"
               >
                 Add Task
               </button>
@@ -146,10 +158,7 @@ const Task = () => {
                       className="btn-close"
                       data-bs-dismiss="modal"
                       aria-label="Close"
-                      onClick={() => {
-                        setShowForm(false);
-                        setEditingTaskId(null);
-                      }}
+                      onClick={() => setEditingTaskId(null)}
                     ></button>
                   </div>
                   <div className="modal-body">
@@ -158,24 +167,20 @@ const Task = () => {
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Enter task name"
                         value={taskName}
                         onChange={(e) => setTaskName(e.target.value)}
                         required
                       />
                     </div>
-
                     <div className="mb-3">
                       <label className="form-label">Task Description</label>
                       <textarea
                         className="form-control"
-                        placeholder="Enter task description"
                         value={taskDesc}
                         onChange={(e) => setTaskDesc(e.target.value)}
                         required
                       />
                     </div>
-
                     <div className="mb-3">
                       <label className="form-label">Select Priority</label>
                       <select
@@ -185,30 +190,19 @@ const Task = () => {
                         required
                       >
                         <option value="">-- Select Priority --</option>
-                        {priorities.length > 0 ? (
-                          priorities.map((p) => (
-                            <option key={p._id} value={p.name}>
-                              {p.name} ({p.status ? "Active" : "Inactive"})
-                            </option>
-                          ))
-                        ) : (
-                          <option value="" disabled>
-                            No priorities found
+                        {priorities.map((p) => (
+                          <option key={p._id} value={p._id}>
+                            {p.name}
                           </option>
-                        )}
+                        ))}
                       </select>
                     </div>
-
                   </div>
                   <div className="modal-footer">
                     <button
                       type="button"
                       className="btn btn-secondary"
                       data-bs-dismiss="modal"
-                      onClick={() => {
-                        setShowForm(false);
-                        setEditingTaskId(null);
-                      }}
                     >
                       Cancel
                     </button>
@@ -229,36 +223,32 @@ const Task = () => {
                 <table className="table table-bordered table-striped mt-3">
                   <thead>
                     <tr>
-                      <th style={{ width: "5%" }}>S.No</th>
-                      <th style={{ width: "25%" }}>Task Name</th>
-                      <th style={{ width: "30%" }}>Description</th>
-                      <th style={{ width: "20%" }}>Priority</th>
-                      <th style={{ width: "20%" }}>Actions</th>
+                      <th>S.No</th>
+                      <th>Task Name</th>
+                      <th>Description</th>
+                      <th>Priority</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {tasks.length > 0 ? (
-                      tasks.map((task, index) => (
+                    {currentTasks.length > 0 ? (
+                      currentTasks.map((task, index) => (
                         <tr key={task._id}>
-                          <td>{index + 1}</td>
+                          <td>{indexOfFirst + index + 1}</td>
                           <td>{task.name}</td>
                           <td>{task.description}</td>
-                          <td>
-                            <span className={getPriorityClass(task.priority)}>
-                              {task.priority}
-                            </span>
-                          </td>
+                          <td>{task.priorityId?.name || "N/A"}</td>
                           <td>
                             <button
-                              className="btn btn-sm btn-warning me-2"
-                              onClick={() => handleEdit(task)}
+                              className="btn btn-warning btn-sm me-2"
                               data-bs-toggle="modal"
                               data-bs-target="#taskModal"
+                              onClick={() => handleEdit(task)}
                             >
                               Edit
                             </button>
                             <button
-                              className="btn btn-sm btn-danger"
+                              className="btn btn-danger btn-sm ml-2"
                               onClick={() => handleDelete(task._id)}
                             >
                               Delete
@@ -269,15 +259,27 @@ const Task = () => {
                     ) : (
                       <tr>
                         <td colSpan="5" className="text-center">
-                          No tasks found
+                          No tasks found.
                         </td>
                       </tr>
                     )}
                   </tbody>
                 </table>
+
+                {totalPages > 1 && (
+                  <div className="d-flex justify-content-center mt-4">
+                    <Pagination
+                      count={totalPages}
+                      page={page}
+                      onChange={(e, value) => navigate(`?page=${value}`)}
+                      color="primary"
+                      shape="rounded"
+                      renderItem={(item) => <PaginationItem {...item} />}
+                    />
+                  </div>
+                )}
               </div>
             </div>
-
           </div>
         </div>
       </div>

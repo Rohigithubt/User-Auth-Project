@@ -6,7 +6,7 @@ import axios from "axios";
 // const API_URL = import.meta.env.MODE === "development" ? import.meta.env.VITE_API_URL : "/api";
 const API_URL = 'http://localhost:3000/api'
 const API_URL2 = 'http://localhost:3000/api/priority'
-// const API_URL3 = 'http://localhost:3000/api/task'
+const API_URL3 = 'http://localhost:3000/api/task'
 
 
 
@@ -333,6 +333,72 @@ export const useAuthStore = create((set) => ({
 	// 		throw error;
 	// 	}
 	// },
+
+
+	taskIndex: async () => {
+   set({ isLoading: true, error: null });
+		try {
+			const response = await axios.post(`${API_URL3}`);
+			set({ isLoading: false });
+			return response.data;
+		} catch (error) {
+			set({
+				error: error.response?.data?.error || "Something went wrong",
+				isLoading: false,
+			});
+			throw error;
+		}
+  },
+
+  // Create a new task
+  createTask: async (taskData) => {
+    try {
+      const response = await axios.post(`${API_URL3}/create`, taskData);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating task:", error);
+      throw error;
+    }
+  },
+
+  
+  editTask: async (taskId) => {
+    try {
+      const response = await axios.post(`${API_URL3}/edit`, { taskId });
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching task for edit:", error);
+      throw error;
+    }
+  },
+
+
+  updateTask: async (taskData) => {
+    try {
+      const response = await axios.post(`${API_URL3}/update`, taskData);
+      return response.data.task;
+    } catch (error) {
+      console.error("Error updating task:", error);
+      throw error;
+    }
+  },
+
+
+ destroyTask: async (taskId) => {
+  set({ isLoading: true, error: null });
+  try {
+    const response = await axios.post(`${API_URL3}/destroy`, { taskId });
+    set({ isLoading: false });
+    return response.data;
+  } catch (error) {
+    set({
+      error: error.response?.data?.error || "Failed to delete task",
+      isLoading: false,
+    });
+    throw error;
+  }
+},
+
 
 
 }));
