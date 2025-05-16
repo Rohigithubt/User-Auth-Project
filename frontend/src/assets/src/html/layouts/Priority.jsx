@@ -4,13 +4,16 @@ import Pagination from "@mui/material/Pagination";
 import PaginationItem from "@mui/material/PaginationItem";
 import { useAuthStore } from "./store/authStore";
 import Swal from "sweetalert2";
+import { Modal } from 'bootstrap'; 
+
 
 const Priority = () => {
   const [priorities, setPriorities] = useState([]);
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState("Active");
   const [editId, setEditId] = useState(null);
-  const [showForm, setShowForm] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -18,11 +21,11 @@ const Priority = () => {
   const page = parseInt(query.get("page") || "1", 10);
   const prioritiesPerPage = 7;
 
-  const { index, create, edit, update, destroy } = useAuthStore();
+  const { indexPriority, createPriority, editPriority, updatePriority, destroyPriority } = useAuthStore();
 
   const fetchPriorities = async () => {
     try {
-      const response = await index();
+      const response = await indexPriority();
       if (response?.status) {
         const sorted = [...response.data].sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
@@ -42,50 +45,68 @@ const Priority = () => {
     setTitle("");
     setStatus("Active");
     setEditId(null);
-    setShowForm(false);
+    setErrors({});
+    setApiError(null);
   };
 
   const handleCreateOrUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      const isactive = status === "Active";
+  e.preventDefault();
+  setErrors({});
+  setApiError(null);
 
-      if (editId) {
-        const response = await update({
-          priorityId: editId,
-          name: title,
-          status: isactive,
-        });
-        if (response?.status) {
-          await fetchPriorities();
-          resetForm();
-        }
-      } else {
-        const response = await create(title, isactive);
-        if (response?.status) {
-          await fetchPriorities();
+  if (!title.trim()) {
+    setErrors({ title: "Priority name is required" });
+    return;
+  }
 
-          resetForm();
+  try {
+    const isActive = status === "Active";
+    let response;
 
-          navigate("?page=1", { replace: true });
-
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      }
-    } catch (err) {
-      console.error("Create/Update failed", err);
+    if (editId) {
+      response = await updatePriority({
+        priorityId: editId,
+        name: title,
+        status: isActive,
+      });
+    } else {
+      response = await createPriority(title, isActive);
     }
-  };
 
+    if (response?.status) {
+      await fetchPriorities();
+
+      const modalEl = document.getElementById("priorityModal");
+      if (modalEl) {
+        const modal = Modal.getOrCreateInstance(modalEl); 
+        modal.hide();
+      }
+
+      resetForm();
+
+      if (!editId) {
+        navigate("?page=1", { replace: true });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    } else {
+      setApiError(response?.message || "An error occurred");
+    }
+  } catch (error) {
+    const message =
+      error?.response?.data?.message || "Server error, please try again.";
+    setApiError(message);
+  }
+};
   const handleEdit = async (id) => {
     try {
-      const response = await edit(id);
+      const response = await editPriority(id);
       if (response?.status) {
         const data = response.data;
         setTitle(data.name);
         setStatus(data.status ? "Active" : "Inactive");
         setEditId(id);
-        setShowForm(true);
+        setErrors({});
+        setApiError(null);
       }
     } catch (err) {
       console.error("Edit fetch failed", err);
@@ -105,7 +126,7 @@ const Priority = () => {
 
     if (result.isConfirmed) {
       try {
-        const response = await destroy(id);
+        const response = await destroyPriority(id);
         if (response?.status) {
           await fetchPriorities();
           Swal.fire({
@@ -140,7 +161,6 @@ const Priority = () => {
                 data-bs-target="#priorityModal"
                 onClick={() => {
                   resetForm();
-                  setShowForm(true);
                 }}
               >
                 Add Priority
@@ -158,7 +178,7 @@ const Priority = () => {
                 <form
                   onSubmit={handleCreateOrUpdate}
                   className="modal-content"
-                  onClick={(e) => e.stopPropagation()} 
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <div className="modal-header">
                     <h5 className="modal-title" id="priorityModalLabel">
@@ -173,24 +193,46 @@ const Priority = () => {
                     ></button>
                   </div>
                   <div className="modal-body">
+                    {apiError && (
+                      <div className="alert alert-danger" role="alert">
+                        {apiError}
+                      </div>
+                    )}
+
                     <div className="mb-3">
-                      <label className="form-label">Priority Name</label>
+                      <label htmlFor="priorityName" className="form-label">
+                        Priority Name
+                      </label>
                       <input
                         type="text"
-                        className="form-control"
+                        id="priorityName"
+                        className={`form-control ${
+                          errors.title ? "is-invalid" : ""
+                        }`}
                         placeholder="Enter Priority Name"
                         value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        required
+                        onChange={(e) => {
+                          setTitle(e.target.value);
+                          setErrors({});
+                          setApiError(null);
+                        }}
                       />
+                      {errors.title && (
+                        <div className="invalid-feedback">{errors.title}</div>
+                      )}
                     </div>
                     <div className="mb-3">
-                      <label className="form-label">Status</label>
+                      <label htmlFor="priorityStatus" className="form-label">
+                        Status
+                      </label>
                       <select
+                        id="priorityStatus"
                         className="form-control"
                         value={status}
-                        onChange={(e) => setStatus(e.target.value)}
-                        required
+                        onChange={(e) => {
+                          setStatus(e.target.value);
+                          setApiError(null);
+                        }}
                       >
                         <option value="Active">Active</option>
                         <option value="Inactive">Inactive</option>
@@ -206,12 +248,9 @@ const Priority = () => {
                     >
                       Cancel
                     </button>
-                    <button
-                      type="submit"
-                      className="btn btn-success"
-                      data-bs-dismiss="modal"
-                    >
+                    <button type="submit" className="btn btn-success" >
                       {editId ? "Update" : "Create"}
+                 
                     </button>
                   </div>
                 </form>
@@ -267,15 +306,15 @@ const Priority = () => {
                 {totalPages > 1 && (
                   <div className="d-flex justify-content-center mt-4">
                     <Pagination
-                      page={page}
                       count={totalPages}
-                      color="primary"
+                      page={page}
                       renderItem={(item) => (
                         <PaginationItem
+                          component="a"
                           {...item}
-                          onClick={() => {
-                            const targetPage = item.page;
-                            navigate(`?page=${targetPage}`);
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigate(`?page=${item.page}`);
                           }}
                         />
                       )}
