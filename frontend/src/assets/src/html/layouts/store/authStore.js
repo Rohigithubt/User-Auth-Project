@@ -93,22 +93,30 @@ export const useAuthStore = create((set) => ({
 		}
 	},
 	resetPassword: async (token, password, confirmPassword) => {
-		set({ isLoading: true, error: null });
-		try {
-			const response = await axios.post(`${API_URL}/reset-password`, {
-				token,
-				password,
-				confirmPassword,
-			});
-			set({ message: response.data.message, isLoading: false });
-		} catch (error) {
-			set({
-				isLoading: false,
-				error: error.response?.data?.message || "Error resetting password",
-			});
-			throw error;
-		}
-	},
+  set({ isLoading: true, error: null });
+  try {
+    if (!token) {
+      throw new Error("Token is missing or invalid");
+    }
+
+    const response = await axios.post(
+      `http://localhost:3000/api/reset-password/token=${token}`,
+      { password, confirmPassword }
+    );
+console.log(response,"response");
+
+    set({ isLoading: false });
+    return response.data;
+  } catch (error) {
+    set({ 
+      error: error.response?.data?.message || error.message || "Reset password failed", 
+      isLoading: false 
+    });
+    throw error;
+  }
+},
+
+
 
 	destroy: async (userId) => {
 		set({ isLoading: true, error: null });
