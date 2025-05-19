@@ -4,8 +4,9 @@ import Pagination from "@mui/material/Pagination";
 import PaginationItem from "@mui/material/PaginationItem";
 import { useAuthStore } from "./store/authStore";
 import Swal from "sweetalert2";
-import { Modal } from 'bootstrap'; 
-
+import { Modal } from "bootstrap";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Priority = () => {
   const [priorities, setPriorities] = useState([]);
@@ -14,14 +15,18 @@ const Priority = () => {
   const [editId, setEditId] = useState(null);
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const location = useLocation();
   const navigate = useNavigate();
   const query = new URLSearchParams(location.search);
-  const page = parseInt(query.get("page") || "1", 10);
+  const page = parseInt(query.get("page") || "1", 7);
   const prioritiesPerPage = 7;
 
-  const { indexPriority, createPriority, editPriority, updatePriority, destroyPriority } = useAuthStore();
+  const { indexPriority, createPriority, editPriority, updatePriority, destroyPriority } =
+    useAuthStore();
 
   const fetchPriorities = async () => {
     try {
@@ -50,53 +55,56 @@ const Priority = () => {
   };
 
   const handleCreateOrUpdate = async (e) => {
-  e.preventDefault();
-  setErrors({});
-  setApiError(null);
+    e.preventDefault();
+    setErrors({});
+    setApiError(null);
 
-  if (!title.trim()) {
-    setErrors({ title: "Priority name is required" });
-    return;
-  }
-
-  try {
-    const isActive = status === "Active";
-    let response;
-
-    if (editId) {
-      response = await updatePriority({
-        priorityId: editId,
-        name: title,
-        status: isActive,
-      });
-    } else {
-      response = await createPriority(title, isActive);
+    if (!title.trim()) {
+      setErrors({ title: "Priority name is required" });
+      return;
     }
 
-    if (response?.status) {
-      await fetchPriorities();
+    try {
+      const isActive = status === "Active";
+      let response;
 
-      const modalEl = document.getElementById("priorityModal");
-      if (modalEl) {
-        const modal = Modal.getOrCreateInstance(modalEl); 
-        modal.hide();
+      if (editId) {
+        response = await updatePriority({
+          priorityId: editId,
+          name: title,
+          status: isActive,
+        });
+        toast.success("Priority updated successfully!");
+      } else {
+        response = await createPriority(title, isActive);
+        toast.success("Priority added successfully!");
       }
 
-      resetForm();
+      if (response?.status) {
+        await fetchPriorities();
 
-      if (!editId) {
-        navigate("?page=1", { replace: true });
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        const modalEl = document.getElementById("priorityModal");
+        if (modalEl) {
+          const modal = Modal.getOrCreateInstance(modalEl);
+          modal.hide();
+        }
+
+        resetForm();
+
+        if (!editId) {
+          navigate("?page=1", { replace: true });
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      } else {
+        setApiError(response?.message || "An error occurred");
       }
-    } else {
-      setApiError(response?.message || "An error occurred");
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || "Server error, please try again.";
+      setApiError(message);
     }
-  } catch (error) {
-    const message =
-      error?.response?.data?.message || "Server error, please try again.";
-    setApiError(message);
-  }
-};
+  };
+
   const handleEdit = async (id) => {
     try {
       const response = await editPriority(id);
@@ -143,30 +151,106 @@ const Priority = () => {
     }
   };
 
-  const totalPages = Math.ceil(priorities.length / prioritiesPerPage);
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: `You are about to delete ${selectedIds.length} priorities.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete all!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (result.isConfirmed) {
+      for (const id of selectedIds) {
+        await destroyPriority(id);
+      }
+      await fetchPriorities();
+      setSelectedIds([]);
+      setSelectAll(false);
+      Swal.fire("Deleted!", "Selected priorities have been deleted.", "success");
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectAll) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(currentPriorities.map((item) => item._id));
+    }
+    setSelectAll(!selectAll);
+  };
+
+  const handleCheckboxChange = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((i) => i !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const filteredPriorities = priorities.filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredPriorities.length / prioritiesPerPage);
   const indexOfLast = page * prioritiesPerPage;
   const indexOfFirst = indexOfLast - prioritiesPerPage;
-  const currentPriorities = priorities.slice(indexOfFirst, indexOfLast);
+  const currentPriorities = filteredPriorities.slice(indexOfFirst, indexOfLast);
 
   return (
     <div className="pc-container">
       <div className="pc-content">
+        <style>{`
+          .table {
+            table-layout: fixed;
+          }
+          .table td.priority-name {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        `}</style>
         <div className="row">
           <div className="col-md-12 col-xl-12 mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h4>Priority List</h4>
-              <button
-                className="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#priorityModal"
-                onClick={() => {
-                  resetForm();
-                }}
-              >
-                Add Priority
-              </button>
+              <div>
+                {selectedIds.length > 0 && (
+                  <button className="btn btn-danger me-2" onClick={handleBulkDelete}>
+                    Delete Selected
+                  </button>
+                )}
+                <button
+                  className="btn btn-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#priorityModal"
+                  onClick={resetForm}
+                >
+                  Add Priority
+                </button>
+              </div>
             </div>
 
+
+
+            <div className="mb-3 d-flex justify-content-end" style={{ marginRight: "150px", marginTop: "-55px" }}>
+              <div className="search-box">
+                <input
+                  type="text"
+                  className="search-txt"
+                  placeholder="Search Task"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <a href="#" className="search-btn" onClick={(e) => e.preventDefault()}>
+                  <i className="bi bi-search" style={{ fontSize: "20px" }}></i>
+                </a>
+              </div>
+            </div>
             <div
               className="modal fade"
               id="priorityModal"
@@ -198,7 +282,6 @@ const Priority = () => {
                         {apiError}
                       </div>
                     )}
-
                     <div className="mb-3">
                       <label htmlFor="priorityName" className="form-label">
                         Priority Name
@@ -206,9 +289,7 @@ const Priority = () => {
                       <input
                         type="text"
                         id="priorityName"
-                        className={`form-control ${
-                          errors.title ? "is-invalid" : ""
-                        }`}
+                        className={`form-control ${errors.title ? "is-invalid" : ""}`}
                         placeholder="Enter Priority Name"
                         value={title}
                         onChange={(e) => {
@@ -248,9 +329,8 @@ const Priority = () => {
                     >
                       Cancel
                     </button>
-                    <button type="submit" className="btn btn-success" >
+                    <button type="submit" className="btn btn-success">
                       {editId ? "Update" : "Create"}
-                 
                     </button>
                   </div>
                 </form>
@@ -262,8 +342,11 @@ const Priority = () => {
                 <table className="table table-bordered table-striped">
                   <thead>
                     <tr>
-                      <th>S.No</th>
-                      <th>Priority Name</th>
+                      <th style={{ width: "50px" }}>
+                        <input type="checkbox" checked={selectAll} onChange={toggleSelectAll} />
+                      </th>
+                      <th style={{ width: "60px" }}>S.No</th>
+                      <th style={{ width: "200px" }}>Priority Name</th>
                       <th>Status</th>
                       <th>Actions</th>
                     </tr>
@@ -272,8 +355,17 @@ const Priority = () => {
                     {currentPriorities.length ? (
                       currentPriorities.map((item, idx) => (
                         <tr key={item._id}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.includes(item._id)}
+                              onChange={() => handleCheckboxChange(item._id)}
+                            />
+                          </td>
                           <td>{indexOfFirst + idx + 1}</td>
-                          <td>{item.name}</td>
+                          <td className="priority-name" title={item.name}>
+                            {item.name}
+                          </td>
                           <td>{item.status ? "Active" : "Inactive"}</td>
                           <td>
                             <button
@@ -295,7 +387,7 @@ const Priority = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="4" className="text-center">
+                        <td colSpan="5" className="text-center">
                           No priorities found
                         </td>
                       </tr>
@@ -325,6 +417,7 @@ const Priority = () => {
             </div>
           </div>
         </div>
+        <ToastContainer position="top-right" autoClose={3000} />
       </div>
     </div>
   );

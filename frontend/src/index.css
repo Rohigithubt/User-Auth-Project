@@ -1,1 +1,53 @@
 /* Add your global styles here */
+/* body {
+  margin: 0;
+  padding: 0;
+  background: #4097FF;
+} */
+
+.search-box {
+  position: relative;
+  background: rgb(242 242 242);
+  height: 40px;
+  border-radius: 40px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  transition: all 0.4s ease;
+}
+
+.search-txt {
+  border: none;
+  background: none;
+  outline: none;
+  color: black;
+  font-size: 16px;
+  width: 0px;
+  line-height: 40px;
+  transition: 0.4s;
+}
+
+.search-btn {
+  color: #4097FF;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: transparent;
+    /* background: #fff; */
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  transition: 0.4s;
+  cursor: pointer;
+}
+
+.search-box:hover .search-txt {
+  width: 200px;
+  padding: 0 10px;
+}
+
+.search-box:hover .search-btn {
+  background: transparent;
+}

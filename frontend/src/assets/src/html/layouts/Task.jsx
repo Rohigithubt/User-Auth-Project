@@ -5,6 +5,8 @@ import Pagination from "@mui/material/Pagination";
 import PaginationItem from "@mui/material/PaginationItem";
 import Swal from "sweetalert2";
 import { Modal } from "bootstrap";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Task = () => {
   const [tasks, setTasks] = useState([]);
@@ -15,11 +17,14 @@ const Task = () => {
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const navigate = useNavigate();
   const location = useLocation();
   const query = new URLSearchParams(location.search);
-  const page = parseInt(query.get("page") || "1", 10);
+  const page = parseInt(query.get("page") || "1", 7);
   const tasksPerPage = 7;
 
   const {
@@ -85,9 +90,15 @@ const Task = () => {
     };
 
     try {
-      const response = editingTaskId
-        ? await updateTask({ ...payload, taskId: editingTaskId })
-        : await createTask(payload);
+      let response;
+
+      if (editingTaskId) {
+        response = await updateTask({ ...payload, taskId: editingTaskId });
+        if (response?.status) toast.success("Task updated successfully!");
+      } else {
+        response = await createTask(payload);
+        if (response?.status) toast.success("Task added successfully!");
+      }
 
       if (response?.status) {
         await fetchData();
@@ -115,31 +126,31 @@ const Task = () => {
   };
 
   const handleEdit = async (taskId) => {
-  try {
-    const updatedTask = await editTask(taskId); 
-    if (updatedTask) {
-      setTaskName(updatedTask.name);
-      setTaskDesc(updatedTask.description);
-      setTaskPriority(updatedTask.priorityId?._id || "");
-      setEditingTaskId(updatedTask._id);
-      setErrors({});
-      setApiError(null);
-    } else {
+    try {
+      const updatedTask = await editTask(taskId);
+      if (updatedTask) {
+        setTaskName(updatedTask.name);
+        setTaskDesc(updatedTask.description);
+        setTaskPriority(updatedTask.priorityId?._id || "");
+        setEditingTaskId(updatedTask._id);
+        setErrors({});
+        setApiError(null);
+      } else {
+        Swal.fire({
+          title: "Error",
+          text: "Failed to fetch task data",
+          icon: "error",
+        });
+      }
+    } catch (err) {
+      console.error("Edit fetch failed", err);
       Swal.fire({
         title: "Error",
-        text: "Failed to fetch task data",
+        text: "Something went wrong while fetching task data",
         icon: "error",
       });
     }
-  } catch (err) {
-    console.error("Edit fetch failed", err);
-    Swal.fire({
-      title: "Error",
-      text: "Something went wrong while fetching task data",
-      icon: "error",
-    });
-  }
-};
+  };
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
@@ -171,10 +182,54 @@ const Task = () => {
     }
   };
 
-  const totalPages = Math.ceil(tasks.length / tasksPerPage);
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: `You are about to delete ${selectedIds.length} tasks.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete all!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (result.isConfirmed) {
+      for (const id of selectedIds) {
+        await destroyTask(id);
+      }
+      await fetchData();
+      setSelectedIds([]);
+      setSelectAll(false);
+      Swal.fire("Deleted!", "Selected tasks have been deleted.", "success");
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectAll) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(currentTasks.map((task) => task._id));
+    }
+    setSelectAll(!selectAll);
+  };
+
+  const handleCheckboxChange = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((i) => i !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const filteredTasks = tasks.filter((task) =>
+    task.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
   const indexOfLast = page * tasksPerPage;
   const indexOfFirst = indexOfLast - tasksPerPage;
-  const currentTasks = tasks.slice(indexOfFirst, indexOfLast);
+  const currentTasks = filteredTasks.slice(indexOfFirst, indexOfLast);
 
   return (
     <div className="pc-container">
@@ -183,14 +238,37 @@ const Task = () => {
           <div className="col-md-12 col-xl-12 mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h4>Task List</h4>
-              <button
-                className="btn btn-primary"
-                data-bs-toggle="modal"
-                data-bs-target="#taskModal"
-                onClick={resetForm}
-              >
-                Add Task
-              </button>
+              <div>
+                {selectedIds.length > 0 && (
+                  <button className="btn btn-danger me-2" onClick={handleBulkDelete}>
+                    Delete Selected
+                  </button>
+                )}
+                <button
+                  className="btn btn-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#taskModal"
+                  onClick={resetForm}
+                >
+                  Add Task
+                </button>
+              </div>
+            </div>
+
+
+            <div className="mb-3 d-flex justify-content-end" style={{ marginRight: "150px", marginTop: "-55px" }}>
+              <div className="search-box">
+                <input
+                  type="text"
+                  className="search-txt"
+                  placeholder="Search Task"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <a href="#" className="search-btn" onClick={(e) => e.preventDefault()}>
+                  <i className="bi bi-search" style={{ fontSize: "20px" }}></i>
+                </a>
+              </div>
             </div>
 
             <div
@@ -224,7 +302,6 @@ const Task = () => {
                         {apiError}
                       </div>
                     )}
-
                     <div className="mb-3">
                       <label htmlFor="taskName" className="form-label">
                         Task Name
@@ -233,19 +310,13 @@ const Task = () => {
                         type="text"
                         id="taskName"
                         className={`form-control ${errors.name ? "is-invalid" : ""}`}
-                        placeholder="Enter Task Name"
                         value={taskName}
-                        onChange={(e) => {
-                          setTaskName(e.target.value);
-                          setErrors({});
-                          setApiError(null);
-                        }}
+                        onChange={(e) => setTaskName(e.target.value)}
                       />
                       {errors.name && (
                         <div className="invalid-feedback">{errors.name}</div>
                       )}
                     </div>
-
                     <div className="mb-3">
                       <label htmlFor="taskDesc" className="form-label">
                         Description
@@ -253,15 +324,10 @@ const Task = () => {
                       <textarea
                         id="taskDesc"
                         className="form-control"
-                        placeholder="Enter Task Description"
                         value={taskDesc}
-                        onChange={(e) => {
-                          setTaskDesc(e.target.value);
-                          setApiError(null);
-                        }}
-                      ></textarea>
+                        onChange={(e) => setTaskDesc(e.target.value)}
+                      />
                     </div>
-
                     <div className="mb-3">
                       <label htmlFor="taskPriority" className="form-label">
                         Priority
@@ -270,24 +336,22 @@ const Task = () => {
                         id="taskPriority"
                         className={`form-control ${errors.priority ? "is-invalid" : ""}`}
                         value={taskPriority}
-                        onChange={(e) => {
-                          setTaskPriority(e.target.value);
-                          setApiError(null);
-                        }}
+                        onChange={(e) => setTaskPriority(e.target.value)}
                       >
                         <option value="">Select Priority</option>
-                        {priorities.map((priority) => (
-                          <option key={priority._id} value={priority._id}>
-                            {priority.name}
-                          </option>
-                        ))}
+                        {priorities
+                          .filter((priority) => priority.status === true)
+                          .map((priority) => (
+                            <option key={priority._id} value={priority._id}>
+                              {priority.name}
+                            </option>
+                          ))}
                       </select>
                       {errors.priority && (
                         <div className="invalid-feedback">{errors.priority}</div>
                       )}
                     </div>
                   </div>
-
                   <div className="modal-footer">
                     <button
                       type="button"
@@ -310,6 +374,13 @@ const Task = () => {
                 <table className="table table-bordered table-striped">
                   <thead>
                     <tr>
+                      <th>
+                        <input
+                          type="checkbox"
+                          checked={selectAll}
+                          onChange={toggleSelectAll}
+                        />
+                      </th>
                       <th>S.No</th>
                       <th>Task Name</th>
                       <th>Description</th>
@@ -321,16 +392,43 @@ const Task = () => {
                     {currentTasks.length ? (
                       currentTasks.map((task, idx) => (
                         <tr key={task._id}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.includes(task._id)}
+                              onChange={() => handleCheckboxChange(task._id)}
+                            />
+                          </td>
                           <td>{indexOfFirst + idx + 1}</td>
-                          <td>{task.name}</td>
-                          <td>{task.description}</td>
-                          <td>{task.priorityId?.name || "N/A"}</td>
+                          <td
+                            style={{
+                              maxWidth: "200px",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                            title={task.name}
+                          >
+                            {task.name}
+                          </td>
+                          <td
+                            style={{
+                              maxWidth: "300px",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                            title={task.description}
+                          >
+                            {task.description}
+                          </td>
+                          <td>{task.priorityId?.name || "-"}</td>
                           <td>
                             <button
                               className="btn btn-sm btn-warning me-2"
                               data-bs-toggle="modal"
                               data-bs-target="#taskModal"
-                              onClick={() => handleEdit(task)}
+                              onClick={() => handleEdit(task._id)}
                             >
                               Edit
                             </button>
@@ -345,7 +443,7 @@ const Task = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="5" className="text-center">
+                        <td colSpan="6" className="text-center">
                           No tasks found
                         </td>
                       </tr>
@@ -376,6 +474,8 @@ const Task = () => {
           </div>
         </div>
       </div>
+
+      <ToastContainer position="top-right" autoClose={5000} />
     </div>
   );
 };
