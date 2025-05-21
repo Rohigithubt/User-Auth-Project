@@ -4,11 +4,12 @@ import Topbar from '../layouts/Topbar';
 import { Outlet } from 'react-router-dom';
 import Dashboard from '../dashboard/Dashboard';
 import Priority from '../layouts/Priority';
+import Task from '../layouts/Task';
 
 const MainFile = () => {
   // console.log("tokennn enter dashboard")
   return (
-    <div className="main-layout" style={{ display: 'flex' }}>
+    <>    <div className="main-layout" style={{ display: 'flex' }}>
       <Sidebar />
       <div style={{ flex: 1 }}>
         <Topbar />  
@@ -20,7 +21,12 @@ const MainFile = () => {
          
         </div> */}
       </div>
+      <div>
+        <Task />
+      </div>
     </div>
+    </>
+
   );
 };
 

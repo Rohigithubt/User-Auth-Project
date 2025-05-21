@@ -18,6 +18,8 @@ export const useAuthStore = create((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.post(`${API_URL}/register`, { name, email, password });
+
+      
       set({ user: response.data.user, isAuthenticated: true, isLoading: false });
     } catch (error) {
       set({ error: error.response?.data?.message || "Error signing up", isLoading: false });
@@ -26,16 +28,21 @@ export const useAuthStore = create((set) => ({
   },
 
   login: async (email, password) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await axios.post(`${API_URL}/login`, { email, password });
-      set({ user: response.data.user, isAuthenticated: true, error: null, isLoading: false });
-      return response;
-    } catch (error) {
-      set({ error: error.response?.data?.message || "Error logging in", isLoading: false });
-      throw error;
-    }
-  },
+  set({ isLoading: true, error: null });
+  try {
+    const response = await axios.post(`${API_URL}/login`, { email, password });
+    const { token, user } = response.data;
+
+    localStorage.setItem('token', token);
+    localStorage.setItem('userId', user._id);  
+
+    set({ user, isAuthenticated: true, error: null, isLoading: false });
+    return response;
+  } catch (error) {
+    set({ error: error.response?.data?.message || "Error logging in", isLoading: false });
+    throw error;
+  }
+},
 
   logout: async () => {
     set({ isLoading: true, error: null });
@@ -85,6 +92,42 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+    editProfile: async (userId) => {
+    set({ isLoading: true, error: null });
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/edit-profile`, { userId }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      set({ isLoading: false, user: response.data.data });
+      return response.data;
+    } catch (error) {
+      set({
+        error: error.response?.data?.error || "Failed to fetch profile",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  updateProfile: async (profileData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/update-profile`, profileData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      set({ isLoading: false, user: response.data.user });
+      return response.data;
+    } catch (error) {
+      set({
+        error: error.response?.data?.error || "Failed to update profile",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
   destroy: async (userId) => {
     set({ isLoading: true, error: null });
     try {
@@ -97,36 +140,38 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-  editprofile: async (userId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await axios.post(`${API_URL}/edit-profile`, { userId });
-      set((state) => ({ user: { ...state.user, ...response.data.user }, error: null, isLoading: false }));
-    } catch (error) {
-      set({ error: error.response?.data?.message || "Error editing profile", isLoading: false });
-      throw error;
-    }
-  },
+  // editprofile: async (userId) => {
+  //   set({ isLoading: true, error: null });
+  //   try {
+  //     const response = await axios.post(`${API_URL}/edit-profile`, { userId });
+  //     set((state) => ({ user: { ...state.user, ...response.data.user }, error: null, isLoading: false }));
+  //   } catch (error) {
+  //     set({ error: error.response?.data?.message || "Error editing profile", isLoading: false });
+  //     throw error;
+  //   }
+  // },
 
-  updateprofile: async (userId, password) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await axios.post(`${API_URL}/update-profile`, { userId, password });
-      set((state) => ({ user: { ...state.user, ...response.data.user }, error: null, isLoading: false }));
-    } catch (error) {
-      set({ error: error.response?.data?.error || "Error updating profile", isLoading: false });
-      throw error;
-    }
-  },
+  // updateprofile: async (userId, password) => {
+  //   set({ isLoading: true, error: null });
+  //   try {
+  //     const response = await axios.post(`${API_URL}/update-profile`, { userId, password });
+  //     set((state) => ({ user: { ...state.user, ...response.data.user }, error: null, isLoading: false }));
+  //   } catch (error) {
+  //     set({ error: error.response?.data?.error || "Error updating profile", isLoading: false });
+  //     throw error;
+  //   }
+  // },
 
 
 
   
 
-  indexPriority: async () => {
+  indexPriority: async (userId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL2}`);
+      console.log(userId,"userIduserId");
+      
+      const response = await axios.post(`${API_URL2}`,{userId:userId});
       set({ isLoading: false });
       return response.data;
     } catch (error) {
@@ -135,10 +180,10 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-  createPriority: async (title, isactive) => {
+  createPriority: async (title, isactive,userId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL2}/create`, { name: title, status: isactive });
+      const response = await axios.post(`${API_URL2}/create`, { name: title, status: isactive , createdBy: userId});
       set({ isLoading: false });
       return response.data;
     } catch (error) {
@@ -163,6 +208,8 @@ export const useAuthStore = create((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.post(`${API_URL2}/update`, priorityData);
+      console.log(priorityData,"priorityDatapriorityData");
+      
       set({ isLoading: false });
       return response.data;
     } catch (error) {
@@ -186,10 +233,11 @@ export const useAuthStore = create((set) => ({
 
 
 
-  taskIndex: async () => {
+  taskIndex: async (userId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL3}`);
+      const response = await axios.post(`${API_URL3}`,{userId:userId});
+      
       set({ isLoading: false });
       return response.data;
     } catch (error) {
@@ -201,6 +249,10 @@ export const useAuthStore = create((set) => ({
   createTask: async (taskData) => {
     try {
       const response = await axios.post(`${API_URL3}/create`, taskData);
+      console.log(response,"responseeeeeeeee");
+
+      console.log(taskData,"taskData");
+      
       return response.data;
     } catch (error) {
       console.error("Error creating task:", error);

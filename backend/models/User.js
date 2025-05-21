@@ -17,7 +17,12 @@ const UserSchema =new Schema({
     token:{
         type:String,
         default :"",
-    }
+    },
+
+    // profileImage: {
+    //   type: String, 
+    //   default: ''   
+    // }
 })
 const User =mongoose.model('User',UserSchema);
 module.exports = User;

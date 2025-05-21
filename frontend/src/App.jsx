@@ -17,18 +17,24 @@ import Priority from './assets/src/html/layouts/Priority';
 import LoginPage from './assets/dist/pages/LoginPage';
 
 import ProtectedRoute from './assets/src/html/layouts/ProtectedRoute';
-import ProtectedLayout from './assets/src/html/layouts/ProtectedLayout ';
+// import ProtectedLayout from './assets/src/html/layouts/ProtectedLayout ';
 import ResetPassword from './assets/dist/pages/ResetPassword';
+import ProfilePage from './assets/src/html/layouts/ProfilePage';
+import ViewProfilePage from './assets/src/html/layouts/ViewProfilePage';
+import ProtectedLayout from './assets/src/html/layouts/ProtectedLayout';
+// import ProtectedLayout from './assets/src/html/layouts/ProtectedLayout ';
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
+
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-
+            <Route path='/profile-page' element={<ProfilePage />} />
+            <Route path='/viewprofile-page' element={<ViewProfilePage />} />
 
 
         <Route element={<ProtectedRoute />}>
@@ -46,9 +52,10 @@ const App = () => {
             <Route path="/priority" element={<Priority />} />
           </Route>
         </Route>
+              <Route path="/*" element={<LoginPage />} />
 
-        <Route path="*" element={<LoginPage />} />
       </Routes>
+
     </BrowserRouter>
   );
 };

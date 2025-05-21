@@ -62,7 +62,8 @@ async function login(req,res){
             user: {
               _id: user._id,
               name: user.name,
-              email: user.email
+              email: user.email,
+               profileImage: user.profileImage || "",
             },
             token
           });
@@ -76,12 +77,15 @@ async function login(req,res){
 
 async function editprofile(req,res){
     const {userId} = req.body;
+    
     try{
         const user = await User.findById(userId);
     if(!user){
          return res.status(401).json({status : false , message : ' Data not found '})
     } 
           res.status(200).json({status : true , data :user})
+              console.log(user,"this is userId");
+
     }catch(error){
         console.log(error);
         res.status(500).json({error:'editprofile  failed'});
@@ -176,6 +180,8 @@ async function resetPassword(req, res) {
 async function logout(req, res) {
     try {
       // Clear the cookie that stores the token/session
+      await User.findByIdAndUpdate(req.userId, { token: "" });
+
       res.clearCookie('token', {
         httpOnly: true,
         secure: true,  // set to true if using https

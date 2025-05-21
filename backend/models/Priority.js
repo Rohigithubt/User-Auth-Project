@@ -20,6 +20,8 @@ const PrioritySchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-})
+},{
+    timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
+  })
 const Priority = mongoose.model('Priority',PrioritySchema);
 module.exports = Priority;

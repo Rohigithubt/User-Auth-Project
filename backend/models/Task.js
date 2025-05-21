@@ -28,6 +28,9 @@ const TaskSchema =new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-})
+},
+{
+    timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
+  })
 const Task = mongoose.model('Task',TaskSchema);
 module.exports = Task;

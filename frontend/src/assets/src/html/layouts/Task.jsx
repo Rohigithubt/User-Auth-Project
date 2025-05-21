@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "./store/authStore";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -22,6 +23,8 @@ const Task = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const navigate = useNavigate();
+    const { login, isLoding, user } = useAuthStore();
+    console.log(user, "userDAta")
   const location = useLocation();
   const query = new URLSearchParams(location.search);
   const page = parseInt(query.get("page") || "1", 7);
@@ -37,23 +40,27 @@ const Task = () => {
   } = useAuthStore();
 
   const fetchData = async () => {
-    try {
-      const priorityRes = await indexPriority();
-      if (priorityRes?.status) {
-        setPriorities(priorityRes.data);
-      }
-
-      const taskRes = await taskIndex();
-      if (taskRes?.status) {
-        const sorted = [...taskRes.data].sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-        setTasks(sorted);
-      }
-    } catch (err) {
-      console.error("Fetch failed", err);
+  try {
+    const userId = localStorage.getItem("userId");
+    
+    // Fetch only user's priorities
+    const priorityRes = await indexPriority(userId);
+    if (priorityRes?.status) {
+      setPriorities(priorityRes.data);
     }
-  };
+
+    // Fetch only user's tasks
+    const taskRes = await taskIndex(userId);
+    if (taskRes?.status) {
+      const sorted = [...taskRes.data].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      setTasks(sorted);
+    }
+  } catch (err) {
+    console.error("Fetch failed", err);
+  }
+};
 
   useEffect(() => {
     fetchData();
@@ -83,11 +90,16 @@ const Task = () => {
       return;
     }
 
+   const userId = localStorage.getItem("userId")
     const payload = {
       name: taskName,
       description: taskDesc,
       priorityId: taskPriority,
+      createdBy: userId,
     };
+    console.log(payload,"payload");
+    console.log(user,"user");
+    
 
     try {
       let response;

@@ -28,7 +28,10 @@ module.exports ={
 
 async function index(req, res) {
   try {
-    const tasks = await Task.find({ isDeleted: false }).populate('priorityId');
+    const {userId} = req.body;
+    console.log(userId,"TaskuserId");
+    
+    const tasks = await Task.find({ isDeleted: false ,createdBy:userId}).sort({'created_at':-1}).populate('priorityId');
     return res.status(200).json({ status: true, data: tasks });
   } catch (error) {
     console.error('Fetch tasks failed:', error);
