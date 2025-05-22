@@ -51,3 +51,44 @@
 .search-box:hover .search-btn {
   background: transparent;
 }
+.hide {
+  display: none !important;
+}
+
+/* Example - adjust as needed */
+.sidebar {
+  transition: all 0.3s ease;
+}
+
+.sidebar.hide {
+  transform: translateX(-100%);
+  display: none; /* or visibility: hidden; */
+   width: 0;
+  overflow: hidden;
+}
+/* .sidebar.hide {
+ 
+} */
+
+/* Hide sidebar */
+#sidebar.hide {
+  display: none !important; /* or set appropriate transform for off-canvas */
+}
+#sidebar {
+  transition: all 0.3s ease;
+}
+
+#sidebar.hide {
+  margin-left: -280px; /* or however wide the sidebar is */
+}
+/* Hide the sidebar */
+#sidebar.hide {
+  display: none !important;
+}
+
+/* Expand top layout when sidebar is hidden */
+#layout-wrapper.expanded {
+  margin-left: 0 !important;
+  width: 100% !important;
+}
+

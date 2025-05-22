@@ -6,7 +6,8 @@ import { useNavigate, Link } from 'react-router-dom';
 
 const ViewProfilePage = () => {
   const { editProfile, isLoading, error } = useAuthStore();
-  const [profileData, setProfileData] = useState({ name: '', email: '', img: '' });
+  const [profileData, setProfileData] = useState({ name: '', email: '', profileImage: '' });
+  
 
   const userId = localStorage.getItem('userId');
   const navigate = useNavigate();
@@ -15,8 +16,9 @@ const ViewProfilePage = () => {
     if (userId) {
       editProfile(userId)
         .then((res) => {
-          const { name = '', email = '', img = '' } = res.data || {};
-          setProfileData({ name, email, img });
+          const { name = '', email = '', profileImage = '' } = res.data || {};
+          
+          setProfileData({ name, email, profileImage});          
         })
         .catch(() => {
           toast.error('Failed to load user data.');
@@ -37,11 +39,12 @@ const ViewProfilePage = () => {
                   <h3 className="mb-0"><b>Profile Details</b></h3>
                 </div>
 
-                {/* Profile Image */}
                 <div className="text-center mb-4">
-                  {profileData.img ? (
+                    {console.log(profileData,"profileData111")}
+                    
+                  {profileData?.profileImage ? (
                     <img
-                      src={`http://localhost:3000/uploads/${profileData.img}`}
+                      src={`http://localhost:3000/uploads/${profileData?.profileImage}?t=${Date.now()}`}
                       alt="Profile"
                       className="rounded-circle"
                       style={{ width: '100px', height: '100px', objectFit: 'cover' }}

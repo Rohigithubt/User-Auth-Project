@@ -19,10 +19,10 @@ const UserSchema =new Schema({
         default :"",
     },
 
-    // profileImage: {
-    //   type: String, 
-    //   default: ''   
-    // }
+    profileImage: {
+      type: String, 
+      default: ''   
+    }
 })
 const User =mongoose.model('User',UserSchema);
 module.exports = User;

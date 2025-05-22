@@ -4,6 +4,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate, Link } from 'react-router-dom';
 
+const backendBaseURL = 'http://localhost:3000'; 
+
 const ProfilePage = () => {
   const { user, editProfile, updateProfile, isLoading, error } = useAuthStore();
   const [formData, setFormData] = useState({
@@ -11,7 +13,7 @@ const ProfilePage = () => {
     email: '',
     password: '',
     img: null,
-    preview: '', // for image preview
+    preview: '',
   });
 
   const userId = localStorage.getItem('userId');
@@ -21,8 +23,9 @@ const ProfilePage = () => {
     if (userId) {
       editProfile(userId)
         .then((res) => {
-          const { name = '', email = '', img = '' } = res.data || {};
-          setFormData({ name, email, password: '', img: null, preview: img });
+          const { name = '', email = '', img = '' ,password=''} = res.data || {};
+          const imageURL = img ? `${backendBaseURL}${img}` : '';
+          setFormData({ name, email, password, img, preview: imageURL });
         })
         .catch(() => {
           toast.error('Failed to load user data.');
@@ -38,6 +41,9 @@ const ProfilePage = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (formData.preview) {
+        URL.revokeObjectURL(formData.preview); 
+      }
       setFormData((prev) => ({
         ...prev,
         img: file,
@@ -46,23 +52,29 @@ const ProfilePage = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const data = new FormData();
-      data.append('userId', userId);
-      data.append('name', formData.name);
-      data.append('email', formData.email);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const data = new FormData();
+    data.append('userId', userId);
+    data.append('name', formData.name);
+    data.append('email', formData.email);
+    
+    if (formData.password.trim()) {
       data.append('password', formData.password);
-      if (formData.img) data.append('img', formData.img);
-
-      await updateProfile(data);
-      toast.success('Profile updated successfully!');
-      setFormData((prev) => ({ ...prev, password: '' }));
-    } catch (err) {
-      toast.error('Failed to update profile.');
     }
-  };
+
+    if (formData.img && formData.img !== 'null') {
+      data.append('image', formData.img);
+    }
+
+    await updateProfile(data);
+    toast.success('Profile updated successfully!');
+    setFormData((prev) => ({ ...prev, password: '' }));
+  } catch (err) {
+    toast.error('Failed to update profile.');
+  }
+};
 
   return (
     <>
@@ -107,6 +119,7 @@ const ProfilePage = () => {
                     <label className="form-label">Name</label>
                     <input
                       name="name"
+                      type="name"
                       value={formData.name}
                       onChange={handleChange}
                       className="form-control"

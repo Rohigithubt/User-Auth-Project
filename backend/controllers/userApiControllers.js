@@ -91,23 +91,39 @@ async function editprofile(req,res){
         res.status(500).json({error:'editprofile  failed'});
     }
 }
-async function updateprofile(req,res){
-    const{ userId ,password } = req.body
-    const updateData = { ...req.body };
-    try{
-        if(password){
-            updateData.password = await global.securePassword(password);
-        }
-            const user = await User.findByIdAndUpdate(userId,updateData ,{new:true}); 
-            if(!user)  {
-            return res.status(404).json({status: false ,error :'User not found'})
-            }
-            res.status(200).json({status: true , user})
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ error:'profile update failed '});
+async function updateprofile(req, res) {
+  const { userId, password } = req.body;
+  const updateData = { ...req.body };
+
+  try {
+    if (password) {
+      updateData.password = await global.securePassword(password);
     }
-}  
+
+    if (req.file) {
+      updateData.profileImage = `${req.file.filename}`;
+    }
+
+    delete updateData.userId;
+
+    const user = await User.findByIdAndUpdate(userId, updateData, { new: true });
+
+    if (!user) {
+      return res.status(404).json({ status: false, error: 'User not found' });
+    }
+
+    res.status(200).json({ status: true, user });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Profile update failed' });
+  }
+}
+
+
+
+
+
+  
 async function destroy(req,res){
     try{ 
     let{userId} = req.body
