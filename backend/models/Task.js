@@ -24,6 +24,11 @@ const TaskSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Priority'
     },
+
+    usernameId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'username'
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'

@@ -226,27 +226,20 @@ const UserTask = () => {
         <div className="row">
           <div className="col-md-12 col-xl-12 mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h4>Priority List</h4>
+              <h4>User Task List</h4>
               <div>
                 {selectedIds.length > 0 && (
                   <button className="btn btn-danger me-2" onClick={handleBulkDelete}>
                     Delete Selected
                   </button>
                 )}
-                <button
-                  className="btn btn-primary"
-                  data-bs-toggle="modal"
-                  data-bs-target="#priorityModal"
-                  onClick={resetForm}
-                >
-                  Add Priority
-                </button>
+              
               </div>
             </div>
 
 
 
-            <div className="mb-3 d-flex justify-content-end" style={{ marginRight: "150px", marginTop: "-55px" }}>
+            <div className="mb-3 d-flex justify-content-end" style={{ marginRight: "17px", marginTop: "-55px" }}>
               <div className="search-box">
                 <input
                   type="text"
@@ -293,7 +286,7 @@ const UserTask = () => {
                     )}
                     <div className="mb-3">
                       <label htmlFor="priorityName" className="form-label">
-                        Priority Name
+                        User Name
                       </label>
                       <input
                         type="text"
@@ -355,9 +348,11 @@ const UserTask = () => {
                         <input type="checkbox" checked={selectAll} onChange={toggleSelectAll} />
                       </th>
                       <th style={{ width: "60px" }}>S.No</th>
-                      <th style={{ width: "200px" }}>Priority Name</th>
-                      <th>Status</th>
-                      <th>Actions</th>
+                      <th style={{ width: "200px" }}>User Name</th>
+                      <th>Task</th>
+                      <th>Priority</th>
+                      <th>Action</th>
+
                     </tr>
                   </thead>
                   <tbody>

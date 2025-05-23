@@ -22,21 +22,21 @@ module.exports ={
 
 };
 
-async function index(req,res){
-    try{
-    const{ userId } = req.body;
-        
-        const user = await user.find({isDeleted: false}).sort({'created_at':-1});
-        if(!user){
-           return res.status(401).json({ status: true, message: "Name is already in use" });
-        }
-        res.status(200).json({ status: true, data: priority });
-    }catch(error){
-       console.log('Registration failed:',error);
-       res.status(500).send("Internal server error");
-    }
-}
+async function index(req, res) {
+  try {
+    const users = await User.find({ isDeleted: false }).sort({ created_at: -1 });
 
+    if (!users || users.length === 0) {
+      return res.status(404).json({ status: false, message: "No users found" });
+    }
+
+    res.status(200).json({ status: true, data: users });
+
+  } catch (error) {
+    console.log('User fetch failed:', error);
+    res.status(500).send("Internal server error");
+  }
+}
 async function register(req,res){
     const{ name , email , password,role } = req.body;
     console.log(req.body);

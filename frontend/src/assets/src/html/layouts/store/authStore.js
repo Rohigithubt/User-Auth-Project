@@ -17,14 +17,16 @@ export const useAuthStore = create((set) => ({
    index: async (userId) => {
     set({ isLoading: true, error: null });
     try {
-      console.log(userId,"userIduserId");
-      
-      const response = await axios.post(`${API_URL}`,{userId:userId});
+      console.log("userId:", userId);
+
+      const response = await axios.post(`${API_URL}`, { userId });
+
       set({ isLoading: false });
       return response.data;
     } catch (error) {
-      set({ error: error.response?.data?.error || "Something went wrong", isLoading: false });
-      throw error;
+      const errorMessage = error.response?.data?.error || "Something went wrong";
+      set({ error: errorMessage, isLoading: false });
+      throw new Error(errorMessage);
     }
   },
 
