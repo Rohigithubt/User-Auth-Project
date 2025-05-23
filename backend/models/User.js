@@ -14,6 +14,7 @@ const UserSchema =new Schema({
         type:String,
         default :"",
     },
+    
     token:{
         type:String,
         default :"",
@@ -22,7 +23,14 @@ const UserSchema =new Schema({
     profileImage: {
       type: String, 
       default: ''   
-    }
+    },
+     
+    role: {
+        type: String,
+        required: true,
+        default:'user',
+    },
+ 
 })
 const User =mongoose.model('User',UserSchema);
 module.exports = User;

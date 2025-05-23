@@ -25,7 +25,7 @@ const ProfilePage = () => {
         .then((res) => {
           const { name = '', email = '', img = '' ,password=''} = res.data || {};
           const imageURL = img ? `${backendBaseURL}${img}` : '';
-          setFormData({ name, email, password, img, preview: imageURL });
+          setFormData({ name, email, password:'', img, preview: imageURL });
         })
         .catch(() => {
           toast.error('Failed to load user data.');

@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import myImage from '../../../../assets/images/logo-dark.svg';
+import "../../../../../../frontend/src/assets/dist/assets/css/style.css"
 
 const SidebarMenu = ({ onClick }) => {
   const linkClasses = ({ isActive }) =>
@@ -39,6 +40,13 @@ const SidebarMenu = ({ onClick }) => {
         <NavLink to="/task" onClick={() => onClick?.('task')} className={linkClasses}>
           <span className="pc-micon"><i className="ti ti-user-plus"></i></span>
           <span className="pc-mtext">Tasks</span>
+        </NavLink>
+      </li>
+
+       <li className="pc-item">
+        <NavLink to="/user-task" onClick={() => onClick?.('user-task')} className={linkClasses}>
+          <span className="pc-micon"><i className="ti ti-user-plus"></i></span>
+          <span className="pc-mtext">User Task</span>
         </NavLink>
       </li>
     </ul>

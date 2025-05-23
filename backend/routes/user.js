@@ -4,6 +4,7 @@ const upload = require('../config/multerfile')
 const userApiController =require('../controllers/userApiControllers');
 
 
+router.post('/',userApiController.index);
 router.post('/register',userApiController.register);
 router.post('/login',userApiController.login);
 router.post('/edit-profile',userApiController.editprofile);

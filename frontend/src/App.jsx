@@ -20,6 +20,7 @@ import ResetPassword from './assets/dist/pages/ResetPassword';
 import ProfilePage from './assets/src/html/layouts/ProfilePage';
 import ViewProfilePage from './assets/src/html/layouts/ViewProfilePage';
 import ProtectedLayout from './assets/src/html/layouts/ProtectedLayout';
+import UserTask from './assets/src/html/layouts/UserTask';
 
 const App = () => {
   return (
@@ -30,14 +31,15 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        
 
         <Route element={<ProtectedRoute />}>
           <Route element={<ProtectedLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/header" element={<Header />} />
             <Route path="/sidebar-menu" element={<SidebarMenu />} />
-<Route path="/profile-page" element={<ProfilePage />} />
-<Route path="/viewprofile-page" element={<ViewProfilePage />} />
+            <Route path="/profile-page" element={<ProfilePage />} />
+            <Route path="/viewprofile-page" element={<ViewProfilePage />} />
             <Route path="/sample-page" element={<SamplePage />} />
             <Route path="/head-pagemeta" element={<HeadPageMeta />} />
             <Route path="/head-css" element={<HeadCSS />} />
@@ -46,6 +48,8 @@ const App = () => {
             <Route path="/footer-js" element={<FooterJS />} />
             <Route path="/task" element={<Task />} />
             <Route path="/priority" element={<Priority />} />
+            <Route path="/user-task" element={<UserTask />} />
+
           </Route>
         </Route>
 

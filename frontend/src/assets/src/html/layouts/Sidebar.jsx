@@ -1,21 +1,18 @@
-import React from 'react';
-import SidebarMenu from './SidebarMenu';
-// import "C:/Users/HP/Desktop/pro/montis/b/src/assets/src/assets/images/logo-dark.svg"
-// import "../logo-dark.svg";
-
-
-const Sidebar = () => {
+import React from "react";
+import SidebarMenu from "./SidebarMenu";
+import "../../../../../../frontend/src/assets/dist/assets/css/style.css"
+const Sidebar = ({ isHidden }) => {
   return (
-    <nav className="pc-sidebar">
+    <nav className={`pc-sidebar ${isHidden ? "hide" : ""}`}>
       <div className="navbar-wrapper">
         <div className="m-header">
-          <a href="../dashboard/index.html" className="b-brand text-primary">
+          <a href="/" className="b-brand text-primary">
             <img src="" className="img-fluid logo-lg" alt="logo" />
           </a>
         </div>
         <div className="navbar-content">
           <ul className="pc-navbar">
-            {<SidebarMenu />}
+            <SidebarMenu />
           </ul>
           <div className="card text-center">
             <div className="card-body">

@@ -14,10 +14,24 @@ export const useAuthStore = create((set) => ({
   isLoading: false,
   message: null,
 
-  register: async (name, email, password) => {
+   index: async (userId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL}/register`, { name, email, password });
+      console.log(userId,"userIduserId");
+      
+      const response = await axios.post(`${API_URL}`,{userId:userId});
+      set({ isLoading: false });
+      return response.data;
+    } catch (error) {
+      set({ error: error.response?.data?.error || "Something went wrong", isLoading: false });
+      throw error;
+    }
+  },
+
+  register: async (name, email, password,role) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.post(`${API_URL}/register`, { name, email, password,role});
 
       
       set({ user: response.data.user, isAuthenticated: true, isLoading: false });

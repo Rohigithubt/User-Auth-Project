@@ -29,6 +29,8 @@ module.exports ={
 async function index(req, res) {
   try {
     const {userId} = req.body;
+    console.log(req.body,"reqqqq");
+    
     console.log(userId,"TaskuserId");
     
     const tasks = await Task.find({ isDeleted: false ,createdBy:userId}).sort({'created_at':-1}).populate('priorityId');

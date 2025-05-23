@@ -9,6 +9,7 @@ const mail = require("../config/mail");
 
 module.exports ={
   
+            index,
             register,
             login,
             editprofile,
@@ -21,8 +22,25 @@ module.exports ={
 
 };
 
+async function index(req,res){
+    try{
+    const{ userId } = req.body;
+        
+        const user = await user.find({isDeleted: false}).sort({'created_at':-1});
+        if(!user){
+           return res.status(401).json({ status: true, message: "Name is already in use" });
+        }
+        res.status(200).json({ status: true, data: priority });
+    }catch(error){
+       console.log('Registration failed:',error);
+       res.status(500).send("Internal server error");
+    }
+}
+
 async function register(req,res){
-    const{ name , email , password } = req.body;
+    const{ name , email , password,role } = req.body;
+    console.log(req.body);
+    
     try{
         const user = await User.findOne({email});
         if(user){

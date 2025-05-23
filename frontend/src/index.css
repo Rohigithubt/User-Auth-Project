@@ -92,3 +92,34 @@
   width: 100% !important;
 }
 
+/* style.css */
+.sidebar-hidden .pc-sidebar {
+  display: none;
+}
+
+.sidebar-hidden .pc-header {
+  margin-left: 0;
+  width: 100%;
+}
+
+.pc-header.expanded-header {
+  margin-left: 0;
+  width: 100%;
+}
+
+/* style.css */
+.sidebar-hidden .pc-sidebar {
+  display: none;
+}
+
+.sidebar-hidden .pc-header {
+  margin-left: 0;
+  width: 100%;
+}
+
+.pc-header.expanded-header {
+  margin-left: 0;
+  width: 100%;
+}
+
+
