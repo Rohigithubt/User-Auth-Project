@@ -30,10 +30,10 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-  register: async (name, email, password,role) => {
+  register: async (name, email, password) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL}/register`, { name, email, password,role});
+      const response = await axios.post(`${API_URL}/register`, { name, email, password});
 
       
       set({ user: response.data.user, isAuthenticated: true, isLoading: false });

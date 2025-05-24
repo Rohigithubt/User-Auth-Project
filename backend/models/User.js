@@ -30,11 +30,7 @@ const UserSchema =new Schema({
       default: ''   
     },
      
-    role: {
-        type: String,
-        required: true,
-        default:'user',
-    },
+
  
 })
 const User =mongoose.model('User',UserSchema);

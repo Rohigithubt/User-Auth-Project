@@ -46,7 +46,7 @@ const SidebarMenu = ({ onClick }) => {
        <li className="pc-item">
         <NavLink to="/user-task" onClick={() => onClick?.('user-task')} className={linkClasses}>
           <span className="pc-micon"><i className="ti ti-user-plus"></i></span>
-          <span className="pc-mtext">User Task</span>
+          <span className="pc-mtext">User</span>
         </NavLink>
       </li>
     </ul>

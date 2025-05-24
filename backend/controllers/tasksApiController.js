@@ -33,7 +33,7 @@ async function index(req, res) {
     
     console.log(userId,"TaskuserId");
     
-    const tasks = await Task.find({ isDeleted: false ,createdBy:userId}).sort({'created_at':-1}).populate('priorityId');
+    const tasks = await Task.find({ isDeleted: false ,createdBy:userId}).sort({'created_at':-1}).populate('priorityName');
     return res.status(200).json({ status: true, data: tasks });
   } catch (error) {
     console.error('Fetch tasks failed:', error);
@@ -53,11 +53,14 @@ async function create(req,res){
            return res.status(401).json({ status: true, message: "Task Name is already in use" });
         }
         await Task.create(req.body);
+        console.log(req.body,"req.bo");
+        
         res.status(200).json({ status: true, message: "Task Name created successfully!" });
     }catch(error){
        console.log('Registration failed:',error);
        res.status(500).send("Internal server error");
     }
+
 }
 
 async function edit(req,res){

@@ -20,14 +20,14 @@ const TaskSchema = new Schema({
         required: true, 
         default: false,
     },
-    priorityId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Priority'
+    priorityName: {
+        type: String,
+        required: true,
     },
 
-    usernameId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'username'
+    userNames: {
+         type: String,
+        required: true,
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,

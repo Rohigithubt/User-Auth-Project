@@ -12,10 +12,10 @@ import "react-toastify/dist/ReactToastify.css";
 const Task = () => {
   const [tasks, setTasks] = useState([]);
   const [priorities, setPriorities] = useState([]);
-  const [taskUserNames ,setTaskUserNames] =useState([]);
+  const [taskUserNames, setTaskUserNames] = useState([]);
   const [taskName, setTaskName] = useState("");
   const [taskDesc, setTaskDesc] = useState("");
-  const [userName,setUserName] = useState("");
+  const [userName, setUserName] = useState("");
   const [taskPriority, setTaskPriority] = useState("");
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [errors, setErrors] = useState({});
@@ -23,10 +23,11 @@ const Task = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [userIdStorage, setUserIdStorage] = useState("")
 
   const navigate = useNavigate();
-    const { login, isLoding, user } = useAuthStore();
-    console.log(user, "userDAta")
+  const { login, isLoding, user } = useAuthStore();
+  // console.log(user, "userDAta")
   const location = useLocation();
   const query = new URLSearchParams(location.search);
   const page = parseInt(query.get("page") || "1", 7);
@@ -42,32 +43,43 @@ const Task = () => {
     destroyTask,
   } = useAuthStore();
 
+  const userId = localStorage.getItem("userId");
+
+  useEffect(() => {
+    if (userId) {
+      setUserIdStorage(userId);
+    }
+  }, []);
   const fetchData = async () => {
-  try {
-    const userId = localStorage.getItem("userId");
-    
-    const priorityRes = await indexPriority(userId);
-    if (priorityRes?.status) {
-      setPriorities(priorityRes.data);
-    }
+    try {
+      // const userId = localStorage.getItem("userId");
 
-    const UserRes = await index(userId);
-    if (UserRes?.status) {
-      setTaskUserNames(UserRes.data);
-    }
+      const priorityRes = await indexPriority(userId);
+      if (priorityRes?.status) {
+        setPriorities(priorityRes.data);
+        console.log(priorityRes.data, "priorityRes.datapriorityRes.data");
 
-    // Fetch only user's tasks
-    const taskRes = await taskIndex(userId);
-    if (taskRes?.status) {
-      const sorted = [...taskRes.data].sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
-      setTasks(sorted);
+      }
+
+      const UserRes = await index(userId);
+      if (UserRes?.status) {
+        setTaskUserNames(UserRes.data);
+        console.log(UserRes.data, "UserRes.dataUserRes.data");
+
+      }
+
+
+      const taskRes = await taskIndex(userId);
+      if (taskRes?.status) {
+        const sorted = [...taskRes.data].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setTasks(sorted);
+      }
+    } catch (err) {
+      console.error("Fetch failed", err);
     }
-  } catch (err) {
-    console.error("Fetch failed", err);
-  }
-};
+  };
 
   useEffect(() => {
     fetchData();
@@ -103,17 +115,17 @@ const Task = () => {
     }
 
 
-   const userId = localStorage.getItem("userId")
+    const userId = localStorage.getItem("userId")
     const payload = {
       name: taskName,
       description: taskDesc,
-      usernameId:userName,
-      priorityId: taskPriority,
+      userNames: userName,
+      priorityName: taskPriority,
       createdBy: userId,
     };
-    console.log(payload,"payload");
-    console.log(user,"user");
-    
+    console.log(payload, "payload");
+    console.log(user, "user");
+
 
     try {
       let response;
@@ -123,7 +135,11 @@ const Task = () => {
         if (response?.status) toast.success("Task updated successfully!");
       } else {
         response = await createTask(payload);
+              console.log(response?.data,"resp");
+
+        
         if (response?.status) toast.success("Task added successfully!");
+
       }
 
       if (response?.status) {
@@ -157,8 +173,10 @@ const Task = () => {
       if (updatedTask) {
         setTaskName(updatedTask.name);
         setTaskDesc(updatedTask.description);
-        setUserName(updatedTask.usernameId?._id || "")
-        setTaskPriority(updatedTask.priorityId?._id || "");
+        setUserName(updatedTask.userNames?.userName || "")
+        console.log(userName, "userNameuserName");
+
+        setTaskPriority(updatedTask.priorityName?.taskPriority || "");
         setEditingTaskId(updatedTask._id);
         setErrors({});
         setApiError(null);
@@ -357,43 +375,47 @@ const Task = () => {
                     </div>
 
 
-                         <div className="mb-3">
-                      <label htmlFor="taskPriority" className="form-label">
-                        User Name
-                      </label>
+
+                    <div className="mb-3">
+                      <label htmlFor="userName" className="form-label">Assign Task To</label>
                       <select
-                        id="taskPriority"
-                        className={`form-control ${errors.username ? "is-invalid" : ""}`}
-                        value={userName}
-                        onChange={(e) => setUserName(e.target.value)}
+                        id="userName"
+                        className={`form-select ${errors.username ? "is-invalid" : ""}`}
+                        value={userName}  // This should store the name string
+                        onChange={(e) => {
+                          const selectedUser = taskUserNames.find(user => user._id === e.target.value);
+                          setUserName(selectedUser ? selectedUser.name : "");
+                        }}
                       >
-                        <option value="">   ---------------------Select User to Assign Task------------------------</option>
-                        {taskUserNames
-                          .filter((priority) => priority.status === true)
-                          .map((priority) => (
-                            <option key={priority._id} value={priority._id}>
-                              {priority.name}
+                        <option value="">Select User</option>
+                        {taskUserNames.filter(user => user._id !== userIdStorage)
+                          .map((user) => (
+                            <option key={user._id} value={user._id}>
+                              {user.name}
                             </option>
                           ))}
                       </select>
-                      {errors.priority && (
-                        <div className="invalid-feedback">{errors.priority}</div>
+                      {/* </div> */}
+                      {errors.username && (
+                        <div className="invalid-feedback">{errors.username}</div>
                       )}
                     </div>
 
 
 
+
                     <div className="mb-3">
-                      <label htmlFor="taskPriority" className="form-label">
-                        Priority
-                      </label>
+                      <label htmlFor="taskPriority" className="form-label">Priority</label>
                       <select
                         id="taskPriority"
                         className={`form-control ${errors.priority ? "is-invalid" : ""}`}
-                        value={taskPriority}
-                        onChange={(e) => setTaskPriority(e.target.value)}
+                        value={taskPriority}  // This should store the name string
+                        onChange={(e) => {
+                          const selectedPriority = priorities.find(p => p._id === e.target.value);
+                          setTaskPriority(selectedPriority ? selectedPriority.name : "");
+                        }}
                       >
-                        <option value="">-----------------------------Select Priority-------------------------------</option>
+                        <option value="">Select Priority</option>
                         {priorities
                           .filter((priority) => priority.status === true)
                           .map((priority) => (
@@ -402,10 +424,11 @@ const Task = () => {
                             </option>
                           ))}
                       </select>
-                      {errors.priority && (
-                        <div className="invalid-feedback">{errors.priority}</div>
-                      )}
                     </div>
+                    {errors.priority && (
+                      <div className="invalid-feedback">{errors.priority}</div>
+                    )}
+                    {/* </div> */}
                   </div>
                   <div className="modal-footer">
                     <button
@@ -439,6 +462,7 @@ const Task = () => {
                       <th>S.No</th>
                       <th>Task Name</th>
                       <th>Description</th>
+                      <th>Assigned User</th>
                       <th>Priority</th>
                       <th>Actions</th>
                     </tr>
@@ -477,7 +501,10 @@ const Task = () => {
                           >
                             {task.description}
                           </td>
-                          <td>{task.priorityId?.name || "-"}</td>
+                          <td>{task.userNames || "No user"}</td>
+
+
+                          <td>{task.priorityName || "-"}</td>
                           <td>
                             <button
                               className="btn btn-sm btn-warning me-2"

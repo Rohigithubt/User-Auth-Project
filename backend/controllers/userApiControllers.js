@@ -38,7 +38,7 @@ async function index(req, res) {
   }
 }
 async function register(req,res){
-    const{ name , email , password,role } = req.body;
+    const{ name , email , password } = req.body;
     console.log(req.body);
     
     try{
