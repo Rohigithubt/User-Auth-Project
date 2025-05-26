@@ -10,7 +10,9 @@ const mail = require("../config/mail");
 module.exports ={
   
             index,
+            indexUser,
             register,
+            registerUser,
             login,
             editprofile,
             updateprofile,
@@ -37,6 +39,30 @@ async function index(req, res) {
     res.status(500).send("Internal server error");
   }
 }
+
+async function indexUser(req, res) {
+  try {
+    const { userId } = req.body;
+
+    const users = await User.find({
+      isDeleted: false,
+      createdBy: userId,
+    }).sort({ created_at: -1 });
+
+    if (!users || users.length === 0) {
+      return res.status(404).json({ status: false, message: "No users found" });
+    }
+
+    res.status(200).json({ status: true, data: users });
+
+  } catch (error) {
+    console.log('User fetch failed:', error);
+    res.status(500).send("Internal server error");
+  }
+}
+
+
+
 async function register(req,res){
     const{ name , email , password } = req.body;
     console.log(req.body);
@@ -55,6 +81,50 @@ async function register(req,res){
        res.status(500).send("Internal server error");
     }
 }
+
+async function registerUser(req, res) {
+    const { name, email } = req.body;
+    console.log(req.body);
+
+    try {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(401).json({ status: false, message: "Email is already in use" });
+        }
+
+        const newUser = await User.create(req.body);
+
+        const randomStrings = randomString.generate();
+        const url = `${process.env.FRONTEND_URL}/reset-password/${randomStrings}`;
+
+        await User.findByIdAndUpdate(newUser._id, {
+            token: randomStrings,
+        });
+
+        const userName = `${newUser.name}`;
+        const htmlString = mail.renderTemplate({ token: url, userName }, "/forget.ejs");
+
+        const mailOptions = {
+            from: process.env.APP_EMAIL,
+            to: newUser.email,
+            subject: "Password Setup Link",
+            text: `Hello ${userName}, thank you for registering. Please use the link below to set your password.`,
+            html: htmlString,
+        };
+
+        mail.transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error("Mail sending error:", error);
+            }
+        });
+
+        res.status(200).json({ status: true, message: "User created and setup email sent!" });
+    } catch (error) {
+        console.log("Registration failed:", error);
+        res.status(500).send("Internal server error");
+    }
+}
+
 
 async function login(req,res){
     const { email, password } = req.body;

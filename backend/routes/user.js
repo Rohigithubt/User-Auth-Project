@@ -5,7 +5,9 @@ const userApiController =require('../controllers/userApiControllers');
 
 
 router.post('/',userApiController.index);
+router.post('/index-user',userApiController.indexUser);
 router.post('/register',userApiController.register);
+router.post('/register-user',userApiController.registerUser);
 router.post('/login',userApiController.login);
 router.post('/edit-profile',userApiController.editprofile);
 router.post('/update-profile' ,upload.single('image'),userApiController.updateprofile);

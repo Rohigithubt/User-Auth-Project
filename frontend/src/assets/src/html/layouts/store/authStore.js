@@ -30,6 +30,21 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+  indexUser: async (userId) => {
+  set({ isLoading: true, error: null });
+  try {
+    console.log(userId, "userIduserId");
+
+    const response = await axios.post(`${API_URL}/index-user`, { userId: userId });
+    set({ isLoading: false });
+    return response.data;
+  } catch (error) {
+    set({ error: error.response?.data?.error || "Something went wrong", isLoading: false });
+    throw error;
+  }
+},
+
+
   register: async (name, email, password) => {
     set({ isLoading: true, error: null });
     try {
@@ -43,6 +58,31 @@ export const useAuthStore = create((set) => ({
     }
   },
 
+registerUser: async (payload) => {
+  set({ isLoading: true, error: null });
+  try {
+    const response = await axios.post(`${API_URL}/register-user`, payload);
+
+    if (response.data?.status) {
+      set({
+        user: payload, 
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } else {
+      throw new Error(response.data?.message || "Registration failed");
+    }
+
+    return response.data;
+  } catch (error) {
+    set({
+      error: error.response?.data?.message || "Error signing up",
+      isLoading: false,
+    });
+    throw error;
+  }
+},
+  
   login: async (email, password) => {
   set({ isLoading: true, error: null });
   try {
@@ -309,3 +349,5 @@ export const useAuthStore = create((set) => ({
   },
 
 }));
+
+

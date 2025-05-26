@@ -2,57 +2,54 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Pagination from "@mui/material/Pagination";
 import PaginationItem from "@mui/material/PaginationItem";
-import { useAuthStore } from "./store/authStore";
 import Swal from "sweetalert2";
 import { Modal } from "bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useAuthStore } from "./store/authStore";
 
 const UserTask = () => {
-  const [priorities, setPriorities] = useState([]);
-  const [title, setTitle] = useState("");
-  const [status, setStatus] = useState("Active");
-  const [editId, setEditId] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [usersname, setUsersname] = useState("");
+  const [emailId, setEmailId] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState(null);
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
 
   const location = useLocation();
   const navigate = useNavigate();
   const query = new URLSearchParams(location.search);
   const page = parseInt(query.get("page") || "1", 7);
-  const prioritiesPerPage = 7;
+  const tasksPerPage = 7;
 
-  const { indexPriority, createPriority, editPriority, updatePriority, destroyPriority } =
-    useAuthStore();
+  const { indexUser, registerUser, editProfile, updateProfile, destroy } = useAuthStore();
 
-  const fetchPriorities = async () => {
+  const fetchTasks = async () => {
     try {
-
-     const userId = localStorage.getItem("userId")
-     
-     const response = await indexPriority(userId);
+      const userId = localStorage.getItem("userId");
+      const response = await indexUser(userId);
       if (response?.status) {
         const sorted = [...response.data].sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
-        setPriorities(sorted);
+        setTasks(sorted);
       }
     } catch (err) {
-      console.error("Failed to fetch priorities", err);
+      console.error("Failed to fetch users", err);
     }
   };
 
   useEffect(() => {
-    fetchPriorities();
+    fetchTasks();
   }, []);
 
   const resetForm = () => {
-    setTitle("");
-    setStatus("Active");
-    setEditId(null);
+    setUsersname("");
+    setEmailId("");
+    setEditingTaskId(null);
     setErrors({});
     setApiError(null);
   };
@@ -62,37 +59,37 @@ const UserTask = () => {
     setErrors({});
     setApiError(null);
 
-    if (!title.trim()) {
-      setErrors({ title: "Priority name is required" });
+    if (!usersname.trim()) {
+      setErrors({ name: "User name is required" });
+      return;
+    }
+    if (!emailId.trim()) {
+      setErrors({ email: "Email is required" });
       return;
     }
 
-    try {
-      const isActive = status === "Active";
-      let response;
-  
+    const userId = localStorage.getItem("userId");
+    const payload = {
+      name: usersname,
+      email: emailId,
+      createdBy: userId,
+    };
 
-   const userId = localStorage.getItem("userId")
-      if (editId) {
-        
-        response = await updatePriority({
-          priorityId: editId,
-          name: title,
-          status: isActive,
-           createdBy: userId,
-        });
-        toast.success("Priority updated successfully!");
-      }
-       else {
-         
-        response = await createPriority(title, isActive,userId);
-        toast.success("Priority added successfully!");
+    try {
+      let response;
+
+      if (editingTaskId) {
+        response = await updateProfile({ ...payload, userId: editingTaskId });
+        if (response?.status) toast.success("User updated successfully!");
+      } else {
+        response = await registerUser(payload);
+        if (response?.status) toast.success("User created successfully!");
       }
 
       if (response?.status) {
-        await fetchPriorities();
+        await fetchTasks();
 
-        const modalEl = document.getElementById("priorityModal");
+        const modalEl = document.getElementById("taskModal");
         if (modalEl) {
           const modal = Modal.getOrCreateInstance(modalEl);
           modal.hide();
@@ -100,7 +97,7 @@ const UserTask = () => {
 
         resetForm();
 
-        if (!editId) {
+        if (!editingTaskId) {
           navigate("?page=1", { replace: true });
           window.scrollTo({ top: 0, behavior: "smooth" });
         }
@@ -114,14 +111,14 @@ const UserTask = () => {
     }
   };
 
-  const handleEdit = async (id) => {
+  const handleEdit = async (userId) => {
     try {
-      const response = await editPriority(id);
+      const response = await editProfile(userId);
       if (response?.status) {
-        const data = response.data;
-        setTitle(data.name);
-        setStatus(data.status ? "Active" : "Inactive");
-        setEditId(id);
+        const user = response.data;
+        setUsersname(user.name);
+        setEmailId(user.email);
+        setEditingTaskId(user._id);
         setErrors({});
         setApiError(null);
       }
@@ -133,7 +130,7 @@ const UserTask = () => {
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "You won’t be able to revert this!",
+      text: "You won't be able to revert this!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -143,12 +140,12 @@ const UserTask = () => {
 
     if (result.isConfirmed) {
       try {
-        const response = await destroyPriority(id);
+        const response = await destroy(id);
         if (response?.status) {
-          await fetchPriorities();
+          await fetchTasks();
           Swal.fire({
             title: "Deleted!",
-            text: "Priority has been deleted.",
+            text: "User has been deleted.",
             icon: "success",
             timer: 1500,
             showConfirmButton: false,
@@ -165,7 +162,7 @@ const UserTask = () => {
 
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: `You are about to delete ${selectedIds.length} priorities.`,
+      text: `You are about to delete ${selectedIds.length} users.`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Yes, delete all!",
@@ -174,12 +171,15 @@ const UserTask = () => {
 
     if (result.isConfirmed) {
       for (const id of selectedIds) {
-        await destroyPriority(id);
+        await destroy(id);
+           await  fetchTasks();
+
       }
-      await fetchPriorities();
+     
+      // await fetchTasks();
       setSelectedIds([]);
       setSelectAll(false);
-      Swal.fire("Deleted!", "Selected priorities have been deleted.", "success");
+      Swal.fire("Deleted!", "Selected users have been deleted.", "success");
     }
   };
 
@@ -187,7 +187,7 @@ const UserTask = () => {
     if (selectAll) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(currentPriorities.map((item) => item._id));
+      setSelectedIds(currentTasks.map((task) => task._id));
     }
     setSelectAll(!selectAll);
   };
@@ -200,14 +200,14 @@ const UserTask = () => {
     }
   };
 
-  const filteredPriorities = priorities.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredTasks = tasks.filter((task) =>
+    task.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredPriorities.length / prioritiesPerPage);
-  const indexOfLast = page * prioritiesPerPage;
-  const indexOfFirst = indexOfLast - prioritiesPerPage;
-  const currentPriorities = filteredPriorities.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
+  const indexOfLast = page * tasksPerPage;
+  const indexOfFirst = indexOfLast - tasksPerPage;
+  const currentTasks = filteredTasks.slice(indexOfFirst, indexOfLast);
 
   return (
     <div className="pc-container">
@@ -216,7 +216,7 @@ const UserTask = () => {
           .table {
             table-layout: fixed;
           }
-          .table td.priority-name {
+          .table td {
             max-width: 200px;
             white-space: nowrap;
             overflow: hidden;
@@ -226,116 +226,43 @@ const UserTask = () => {
         <div className="row">
           <div className="col-md-12 col-xl-12 mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h4>User Task List</h4>
+              <h4>Created User Details</h4>
               <div>
                 {selectedIds.length > 0 && (
                   <button className="btn btn-danger me-2" onClick={handleBulkDelete}>
                     Delete Selected
                   </button>
                 )}
-              
+                <button style={{marginRight:'90px'}}
+                  className="btn btn-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#taskModal"
+                  onClick={resetForm}
+                >
+                  Create User
+                </button>
               </div>
             </div>
 
-
-
-            <div className="mb-3 d-flex justify-content-end" style={{ marginRight: "17px", marginTop: "-55px" }}>
+            <div
+              className="mb-3 d-flex justify-content-end"
+              style={{ marginRight: "17px", marginTop: "-55px" }}
+            >
               <div className="search-box">
                 <input
                   type="text"
                   className="search-txt"
-                  placeholder="Search Task"
+                  placeholder="Search User"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => setSearchTerm(e.target.value)} 
                 />
-                <a href="#" className="search-btn" onClick={(e) => e.preventDefault()}>
+                <a
+                  href="#"
+                  className="search-btn"
+                  onClick={(e) => e.preventDefault()}
+                >
                   <i className="bi bi-search" style={{ fontSize: "20px" }}></i>
                 </a>
-              </div>
-            </div>
-            <div
-              className="modal fade"
-              id="priorityModal"
-              tabIndex="-1"
-              aria-labelledby="priorityModalLabel"
-              aria-hidden="true"
-            >
-              <div className="modal-dialog">
-                <form
-                  onSubmit={handleCreateOrUpdate}
-                  className="modal-content"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="modal-header">
-                    <h5 className="modal-title" id="priorityModalLabel">
-                      {editId ? "Edit Priority" : "Add Priority"}
-                    </h5>
-                    <button
-                      type="button"
-                      className="btn-close"
-                      data-bs-dismiss="modal"
-                      aria-label="Close"
-                      onClick={resetForm}
-                    ></button>
-                  </div>
-                  <div className="modal-body">
-                    {apiError && (
-                      <div className="alert alert-danger" role="alert">
-                        {apiError}
-                      </div>
-                    )}
-                    <div className="mb-3">
-                      <label htmlFor="priorityName" className="form-label">
-                        User Name
-                      </label>
-                      <input
-                        type="text"
-                        id="priorityName"
-                        className={`form-control ${errors.title ? "is-invalid" : ""}`}
-                        placeholder="Enter Priority Name"
-                        value={title}
-                        onChange={(e) => {
-                          setTitle(e.target.value);
-                          setErrors({});
-                          setApiError(null);
-                        }}
-                      />
-                      {errors.title && (
-                        <div className="invalid-feedback">{errors.title}</div>
-                      )}
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="priorityStatus" className="form-label">
-                        Status
-                      </label>
-                      <select
-                        id="priorityStatus"
-                        className="form-control"
-                        value={status}
-                        onChange={(e) => {
-                          setStatus(e.target.value);
-                          setApiError(null);
-                        }}
-                      >
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="modal-footer">
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      data-bs-dismiss="modal"
-                      onClick={resetForm}
-                    >
-                      Cancel
-                    </button>
-                    <button type="submit" className="btn btn-success">
-                      {editId ? "Update" : "Create"}
-                    </button>
-                  </div>
-                </form>
               </div>
             </div>
 
@@ -348,41 +275,39 @@ const UserTask = () => {
                         <input type="checkbox" checked={selectAll} onChange={toggleSelectAll} />
                       </th>
                       <th style={{ width: "60px" }}>S.No</th>
-                      <th style={{ width: "200px" }}>User Name</th>
-                      <th>Task</th>
-                      <th>Priority</th>
+                      <th>User Name</th>
+                      <th>Email</th>
                       <th>Action</th>
-
                     </tr>
                   </thead>
                   <tbody>
-                    {currentPriorities.length ? (
-                      currentPriorities.map((item, idx) => (
-                        <tr key={item._id}>
+                    {currentTasks.length ? (
+                      currentTasks.map((task, idx) => (
+                        <tr key={task._id}>
                           <td>
                             <input
                               type="checkbox"
-                              checked={selectedIds.includes(item._id)}
-                              onChange={() => handleCheckboxChange(item._id)}
+                              checked={selectedIds.includes(task._id)}
+                              onChange={() => handleCheckboxChange(task._id)}
                             />
                           </td>
                           <td>{indexOfFirst + idx + 1}</td>
-                          <td className="priority-name" title={item.name}>
-                            {item.name}
+                          <td title={task.name}>
+                            {task.name || "No user"}
                           </td>
-                          <td>{item.status ? "Active" : "Inactive"}</td>
+                          <td title={task.email}>{task.email}</td>
                           <td>
                             <button
                               className="btn btn-sm btn-warning me-2"
                               data-bs-toggle="modal"
-                              data-bs-target="#priorityModal"
-                              onClick={() => handleEdit(item._id)}
+                              data-bs-target="#taskModal"
+                              onClick={() => handleEdit(task._id)}
                             >
                               Edit
                             </button>
                             <button
                               className="btn btn-sm btn-danger"
-                              onClick={() => handleDelete(item._id)}
+                              onClick={() => handleDelete(task._id)}
                             >
                               Delete
                             </button>
@@ -392,7 +317,7 @@ const UserTask = () => {
                     ) : (
                       <tr>
                         <td colSpan="5" className="text-center">
-                          No priorities found
+                          No user details found
                         </td>
                       </tr>
                     )}
@@ -421,6 +346,81 @@ const UserTask = () => {
             </div>
           </div>
         </div>
+
+        {/* Create User Modal */}
+        <div
+          className="modal fade"
+          id="taskModal"
+          tabIndex="-1"
+          aria-labelledby="taskModalLabel"
+          aria-hidden="true"
+        >
+          <div className="modal-dialog">
+            <form onSubmit={handleCreateOrUpdate}>
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title" id="taskModalLabel">
+                    {editingTaskId ? "Edit User" : "Create User"}
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                    onClick={resetForm}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  {apiError && (
+                    <div className="alert alert-danger" role="alert">
+                      {apiError}
+                    </div>
+                  )}
+                  <div className="mb-3">
+                    <label className="form-label">User Name</label>
+                    <input
+                      type="text"
+                      className={`form-control ${errors.name ? "is-invalid" : ""}`}
+                      value={usersname}
+                      onChange={(e) => setUsersname(e.target.value)}
+                      required
+                    />
+                    {errors.name && (
+                      <div className="invalid-feedback">{errors.name}</div>
+                    )}
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Email</label>
+                    <input
+                      type="email"
+                      className={`form-control ${errors.email ? "is-invalid" : ""}`}
+                      value={emailId}
+                      onChange={(e) => setEmailId(e.target.value)}
+                      required
+                    />
+                    {errors.email && (
+                      <div className="invalid-feedback">{errors.email}</div>
+                    )}
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                    onClick={resetForm}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    {editingTaskId ? "Update" : "Create"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
         <ToastContainer position="top-right" autoClose={3000} />
       </div>
     </div>
@@ -428,4 +428,3 @@ const UserTask = () => {
 };
 
 export default UserTask;
-
