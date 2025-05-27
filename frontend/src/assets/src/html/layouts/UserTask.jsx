@@ -82,7 +82,7 @@ const UserTask = () => {
         response = await updateProfile({ ...payload, userId: editingTaskId });
         if (response?.status) toast.success("User updated successfully!");
       } else {
-        response = await registerUser(payload);
+        response = await registerUser(payload);        
         if (response?.status) toast.success("User created successfully!");
       }
 
@@ -246,7 +246,7 @@ const UserTask = () => {
 
             <div
               className="mb-3 d-flex justify-content-end"
-              style={{ marginRight: "17px", marginTop: "-55px" }}
+              style={{ marginRight: "5px", marginTop: "-55px" }}
             >
               <div className="search-box">
                 <input

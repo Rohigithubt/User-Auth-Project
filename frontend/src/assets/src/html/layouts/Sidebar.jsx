@@ -1,7 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import SidebarMenu from "./SidebarMenu";
 import "../../../../../../frontend/src/assets/dist/assets/css/style.css"
+import SidebarUser from "./SidebarUser";
 const Sidebar = ({ isHidden }) => {
+
+   
+      const Id = localStorage.getItem("createdBy");      
+
+
   return (
     <nav className={`pc-sidebar ${isHidden ? "hide" : ""}`}>
       <div className="navbar-wrapper">
@@ -12,7 +18,9 @@ const Sidebar = ({ isHidden }) => {
         </div>
         <div className="navbar-content">
           <ul className="pc-navbar">
-            <SidebarMenu />
+          
+          {(Id === "null") ?  <SidebarMenu />:
+            < SidebarUser/> }
           </ul>
           <div className="card text-center">
             <div className="card-body">

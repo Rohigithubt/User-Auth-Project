@@ -19,7 +19,7 @@ export const useAuthStore = create((set) => ({
     try {
       console.log("userId:", userId);
 
-      const response = await axios.post(`${API_URL}`, { userId });
+      const response = await axios.post(`${API_URL}/`, { userId });
 
       set({ isLoading: false });
       return response.data;
@@ -90,7 +90,8 @@ registerUser: async (payload) => {
     const { token, user } = response.data;
 
     localStorage.setItem('token', token);
-    localStorage.setItem('userId', user._id);  
+    localStorage.setItem('userId', user._id); 
+    localStorage.setItem('createdBy',user.createdBy); 
 
     set({ user, isAuthenticated: true, error: null, isLoading: false });
     return response;
@@ -292,7 +293,9 @@ registerUser: async (payload) => {
   taskIndex: async (userId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL3}`,{userId:userId});
+      const response = await axios.post(`${API_URL3}/`,{userId:userId});
+      console.log(response.data,"ressssss");
+      
       
       set({ isLoading: false });
       return response.data;

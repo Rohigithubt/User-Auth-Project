@@ -63,23 +63,35 @@ async function indexUser(req, res) {
 
 
 
-async function register(req,res){
-    const{ name , email , password } = req.body;
-    console.log(req.body);
-    
-    try{
-        const user = await User.findOne({email});
-        if(user){
-           return res.status(401).json({ status: true, message: "Email is already in use" });
-        }
-        const hashedPassword = await bcrypt.hash(password, 10);
-        req.body.password = hashedPassword;
-        await User.create(req.body);
-        res.status(200).json({ status: true, message: "User created successfully!" });
-    }catch(error){
-       console.log('Registration failed:',error);
-       res.status(500).send("Internal server error");
+async function register(req, res) {
+  const { name, email, password } = req.body;
+  console.log(req.body);
+
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  try {
+    const user = await User.findOne({ email });
+    if (user) {
+      return res.status(401).json({ status: false, message: "Email is already in use" });
     }
+
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        status: false,
+        message:
+          "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    req.body.password = hashedPassword;
+    await User.create(req.body);
+
+    res.status(200).json({ status: true, message: "User created successfully!" });
+  } catch (error) {
+    console.log("Registration failed:", error);
+    res.status(500).send("Internal server error");
+  }
 }
 
 async function registerUser(req, res) {
@@ -152,6 +164,7 @@ async function login(req,res){
               name: user.name,
               email: user.email,
                profileImage: user.profileImage || "",
+               createdBy:user.createdBy || "null",
             },
             token
           });
@@ -257,28 +270,45 @@ async function forgetPassword(req, res) {
     }
 }
 async function resetPassword(req, res) {
-    try {
-        const { token, password, confirmPassword } = req.body;
+  try {
+    const { token, password, confirmPassword } = req.body;
 
-        let result = token.trim();
-        let hash = await global.securePassword(password);
-        if (password != confirmPassword) {
-            return res.status(404).json({ status: false, error: 'Password and Confirm Password not matched!' });
-        }
-        let tokenData = await User.findOne({ token: result });
-        if (tokenData) {
-            let updated = await User.findByIdAndUpdate(tokenData.id, {
-              password: hash,
-              token: "",
-            });
-            res.status(200).json({ status: true, message: "Password Changed Successfully!" });
-        }else{
-            return res.status(404).json({ status: false, error: 'Sorry! This link has expired or invalid link . Please request a new password reset link to continue.' });
-        }
-    } catch (error) {
-        console.error('Reset password error:', error);
-        res.status(500).json({ error: 'Reset password failed' });
+    let result = token.trim();
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        status: false,
+        error: "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
+      });
     }
+
+    if (password !== confirmPassword) {
+      return res.status(404).json({
+        status: false,
+        error: "Password and Confirm Password not matched!",
+      });
+    }
+
+    let hash = await global.securePassword(password);
+    let tokenData = await User.findOne({ token: result });
+
+    if (tokenData) {
+      await User.findByIdAndUpdate(tokenData.id, {
+        password: hash,
+        token: "",
+      });
+      res.status(200).json({ status: true, message: "Password Changed Successfully!" });
+    } else {
+      return res.status(404).json({
+        status: false,
+        error: "Sorry! This link has expired or is invalid. Please request a new password reset link to continue.",
+      });
+    }
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ error: "Reset password failed" });
+  }
 }
 
 async function logout(req, res) {

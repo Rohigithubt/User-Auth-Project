@@ -21,6 +21,8 @@ import ProfilePage from './assets/src/html/layouts/ProfilePage';
 import ViewProfilePage from './assets/src/html/layouts/ViewProfilePage';
 import ProtectedLayout from './assets/src/html/layouts/ProtectedLayout';
 import UserTask from './assets/src/html/layouts/UserTask';
+import SidebarUser from './assets/src/html/layouts/SidebarUser';
+import UserTaskList from './assets/src/html/layouts/UserTaskList';
 
 const App = () => {
   return (
@@ -38,10 +40,12 @@ const App = () => {
             <Route path="/" element={<Dashboard />} />
             <Route path="/header" element={<Header />} />
             <Route path="/sidebar-menu" element={<SidebarMenu />} />
+            <Route path='/sidebar-user' element={<SidebarUser />} />
             <Route path="/profile-page" element={<ProfilePage />} />
             <Route path="/viewprofile-page" element={<ViewProfilePage />} />
             <Route path="/sample-page" element={<SamplePage />} />
             <Route path="/head-pagemeta" element={<HeadPageMeta />} />
+            <Route path='/usertask-list' element={<UserTaskList />} />
             <Route path="/head-css" element={<HeadCSS />} />
             <Route path="/Bread-crumb" element={<Breadcrumb />} />
             <Route path="/footer-block" element={<FooterBlock />} />
