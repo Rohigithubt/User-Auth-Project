@@ -58,12 +58,23 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-registerUser: async (payload) => {
+registerUser: async(payload) => {
+  console.log(payload,"payload88");
+  
   set({ isLoading: true, error: null });
   try {
+    console.log("object")
     const response = await axios.post(`${API_URL}/register-user`, payload);
+    console.log(API_URL,"API_URL");
+    
+    console.log(response,"response");
+    console.log(payload,"payload55");
+
+    
 
     if (response.data?.status) {
+      console.log(response.data?.status,"response.data?.status");
+      
       set({
         user: payload, 
         isAuthenticated: true,

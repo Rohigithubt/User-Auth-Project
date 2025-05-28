@@ -13,16 +13,19 @@ const UserTask = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [usersname, setUsersname] = useState("");
   const [emailId, setEmailId] = useState("");
+  const [userstate, setUserstate] = useState(true);
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
+  console.log(userstate,"userstate");
+  
 
   const location = useLocation();
   const navigate = useNavigate();
   const query = new URLSearchParams(location.search);
-  const page = parseInt(query.get("page") || "1", 7);
+  const page = parseInt(query.get("page") || "1", 10);
   const tasksPerPage = 7;
 
   const { indexUser, registerUser, editProfile, updateProfile, destroy } = useAuthStore();
@@ -49,6 +52,7 @@ const UserTask = () => {
   const resetForm = () => {
     setUsersname("");
     setEmailId("");
+    setUserstate(true);
     setEditingTaskId(null);
     setErrors({});
     setApiError(null);
@@ -72,8 +76,11 @@ const UserTask = () => {
     const payload = {
       name: usersname,
       email: emailId,
+      userstatus: userstate,
       createdBy: userId,
     };
+    // console.log(payload,"payload11");
+    
 
     try {
       let response;
@@ -82,7 +89,14 @@ const UserTask = () => {
         response = await updateProfile({ ...payload, userId: editingTaskId });
         if (response?.status) toast.success("User updated successfully!");
       } else {
-        response = await registerUser(payload);        
+        response = await registerUser(payload);
+        // console.log(payload,"payload22");
+        // console.log(response,"response22");
+
+        
+   
+
+        
         if (response?.status) toast.success("User created successfully!");
       }
 
@@ -118,6 +132,7 @@ const UserTask = () => {
         const user = response.data;
         setUsersname(user.name);
         setEmailId(user.email);
+        setUserstate(user?.userstatus);
         setEditingTaskId(user._id);
         setErrors({});
         setApiError(null);
@@ -143,13 +158,7 @@ const UserTask = () => {
         const response = await destroy(id);
         if (response?.status) {
           await fetchTasks();
-          Swal.fire({
-            title: "Deleted!",
-            text: "User has been deleted.",
-            icon: "success",
-            timer: 1500,
-            showConfirmButton: false,
-          });
+          Swal.fire("Deleted!", "User has been deleted.", "success");
         }
       } catch (err) {
         console.error("Delete failed", err);
@@ -172,11 +181,8 @@ const UserTask = () => {
     if (result.isConfirmed) {
       for (const id of selectedIds) {
         await destroy(id);
-           await  fetchTasks();
-
       }
-     
-      // await fetchTasks();
+      await fetchTasks();
       setSelectedIds([]);
       setSelectAll(false);
       Swal.fire("Deleted!", "Selected users have been deleted.", "success");
@@ -212,6 +218,7 @@ const UserTask = () => {
   return (
     <div className="pc-container">
       <div className="pc-content">
+        <ToastContainer />
         <style>{`
           .table {
             table-layout: fixed;
@@ -223,6 +230,7 @@ const UserTask = () => {
             text-overflow: ellipsis;
           }
         `}</style>
+
         <div className="row">
           <div className="col-md-12 col-xl-12 mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
@@ -233,11 +241,12 @@ const UserTask = () => {
                     Delete Selected
                   </button>
                 )}
-                <button style={{marginRight:'90px'}}
+                <button
                   className="btn btn-primary"
                   data-bs-toggle="modal"
                   data-bs-target="#taskModal"
                   onClick={resetForm}
+                  style={{ marginRight: "90px" }}
                 >
                   Create User
                 </button>
@@ -254,13 +263,9 @@ const UserTask = () => {
                   className="search-txt"
                   placeholder="Search User"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)} 
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <a
-                  href="#"
-                  className="search-btn"
-                  onClick={(e) => e.preventDefault()}
-                >
+                <a href="#" className="search-btn" onClick={(e) => e.preventDefault()}>
                   <i className="bi bi-search" style={{ fontSize: "20px" }}></i>
                 </a>
               </div>
@@ -277,6 +282,7 @@ const UserTask = () => {
                       <th style={{ width: "60px" }}>S.No</th>
                       <th>User Name</th>
                       <th>Email</th>
+                      <th>Status</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -292,10 +298,9 @@ const UserTask = () => {
                             />
                           </td>
                           <td>{indexOfFirst + idx + 1}</td>
-                          <td title={task.name}>
-                            {task.name || "No user"}
-                          </td>
+                          <td title={task.name}>{task.name || "No user"}</td>
                           <td title={task.email}>{task.email}</td>
+                          <td title={task.userstatus}>{task.userstatus? "Active" :"Inactive"}</td>
                           <td>
                             <button
                               className="btn btn-sm btn-warning me-2"
@@ -316,7 +321,7 @@ const UserTask = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="5" className="text-center">
+                        <td colSpan="6" className="text-center">
                           No user details found
                         </td>
                       </tr>
@@ -347,81 +352,61 @@ const UserTask = () => {
           </div>
         </div>
 
-        {/* Create User Modal */}
-        <div
-          className="modal fade"
-          id="taskModal"
-          tabIndex="-1"
-          aria-labelledby="taskModalLabel"
-          aria-hidden="true"
-        >
-          <div className="modal-dialog">
-            <form onSubmit={handleCreateOrUpdate}>
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title" id="taskModalLabel">
-                    {editingTaskId ? "Edit User" : "Create User"}
-                  </h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                    onClick={resetForm}
-                  ></button>
-                </div>
+        {/* Create/Edit Modal */}
+        <div className="modal fade" id="taskModal" tabIndex="-1" aria-hidden="true">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content p-3">
+              <div className="modal-header">
+                <h5 className="modal-title">{editingTaskId ? "Edit User" : "Create User"}</h5>
+                <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <form onSubmit={handleCreateOrUpdate}>
                 <div className="modal-body">
-                  {apiError && (
-                    <div className="alert alert-danger" role="alert">
-                      {apiError}
-                    </div>
-                  )}
+                  {apiError && <div className="alert alert-danger">{apiError}</div>}
                   <div className="mb-3">
-                    <label className="form-label">User Name</label>
+                    <label>User Name</label>
                     <input
                       type="text"
                       className={`form-control ${errors.name ? "is-invalid" : ""}`}
                       value={usersname}
                       onChange={(e) => setUsersname(e.target.value)}
-                      required
                     />
-                    {errors.name && (
-                      <div className="invalid-feedback">{errors.name}</div>
-                    )}
+                    {errors.name && <div className="invalid-feedback">{errors.name}</div>}
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Email</label>
+                    <label>Email</label>
                     <input
                       type="email"
                       className={`form-control ${errors.email ? "is-invalid" : ""}`}
                       value={emailId}
                       onChange={(e) => setEmailId(e.target.value)}
-                      required
                     />
-                    {errors.email && (
-                      <div className="invalid-feedback">{errors.email}</div>
-                    )}
+                    {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+                  </div>
+                  <div className="mb-3">
+                    <label>Status</label>
+                    <select
+                      className="form-select"
+                      value={userstate}
+                      onChange={(e) => setUserstate(e.target.value)}
+                    >
+                      <option value="true">Active</option>
+                      <option value="false">Inactive</option>
+                    </select>
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    data-bs-dismiss="modal"
-                    onClick={resetForm}
-                  >
+                  <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
                     Cancel
                   </button>
                   <button type="submit" className="btn btn-primary">
                     {editingTaskId ? "Update" : "Create"}
                   </button>
                 </div>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
-
-        <ToastContainer position="top-right" autoClose={3000} />
       </div>
     </div>
   );

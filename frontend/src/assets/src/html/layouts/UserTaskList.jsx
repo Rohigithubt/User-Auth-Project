@@ -9,33 +9,35 @@ import { useAuthStore } from "./store/authStore";
 
 const UserTaskList = () => {
   const [tasks, setTasks] = useState([]);
-  const [users,setUsers] = useState([]);
+  const [users, setUsers] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
   const query = new URLSearchParams(location.search);
   const page = parseInt(query.get("page") || "1", 10);
   const tasksPerPage = 7;
 
-  const { taskIndex ,index} = useAuthStore();
+  const { taskIndex } = useAuthStore();
 
   const fetchTasks = async () => {
     try {
-        const userId1 = localStorage.getItem("createdBy")
-      const userId2 = localStorage.getItem("createdBy");
-      const response1 = await index(userId1);
+      const userId = localStorage.getItem("userId");
+      const userId2 = localStorage.getItem("createdBy")
       const response = await taskIndex(userId2);
-      if (response1?.status) {
-        const sorted = [...response1.data].sort(
+
+      if (response?.status) {
+        const sorted = [...response.data].sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
         setUsers(sorted);
       }
       if (response?.status) {
-        const sorted = [...response.data].sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-        setTasks(sorted);
+        const userId = localStorage.getItem("userId");
+        const filteredAndSorted = response.data
+          .filter(task => task.AssignedUserId === userId)
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setTasks(filteredAndSorted);
       }
+
     } catch (err) {
       console.error("Failed to fetch users", err);
     }
@@ -79,28 +81,32 @@ const UserTaskList = () => {
                       <th>Task</th>
                       <th>Task Description</th>
                       <th>Priority</th>
-                      {/* <th>Status</th> */}
+                      <th>Select Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                  {currentTasks.length ? (
-  currentTasks
-    .filter((task) => users.some((user) => user.userId1 === task.userId2))
-    .map((task, idx) => (
-      <tr key={task._id}>
-        <td>{indexOfFirst + idx + 1}</td>
-        <td>{task.name}</td>
-        <td>{task.description}</td>
-        <td>{task.priorityName}</td>
-      </tr>
-    ))
-) : (
-  <tr>
-    <td colSpan="5" className="text-center">
-      No task details found
-    </td>
-  </tr>
-)}
+
+                    {currentTasks.length ? (
+                      currentTasks
+                        .filter((task) => {
+                          const userId = localStorage.getItem("userId");
+                          return task.AssignedUserId === userId;
+                        })
+                        .map((task, idx) => (
+                          <tr key={task._id}>
+                            <td>{indexOfFirst + idx + 1}</td>
+                            <td>{task.name}</td>
+                            <td>{task.description}</td>
+                            <td>{task.priorityName}</td>
+                          </tr>
+                        ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="text-center">
+                          No task details found
+                        </td>
+                      </tr>
+                    )}
 
                   </tbody>
                 </table>

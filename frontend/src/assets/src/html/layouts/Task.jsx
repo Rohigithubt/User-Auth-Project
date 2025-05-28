@@ -16,6 +16,7 @@ const Task = () => {
   const [taskName, setTaskName] = useState("");
   const [taskDesc, setTaskDesc] = useState("");
   const [userName, setUserName] = useState("");
+  const [assigneduserId,setAssigneduserId] = useState("");
   const [taskPriority, setTaskPriority] = useState("");
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [errors, setErrors] = useState({});
@@ -89,6 +90,7 @@ const Task = () => {
     setTaskName("");
     setTaskDesc("");
     setUserName("");
+    setAssigneduserId("");
     setTaskPriority("");
     setEditingTaskId(null);
     setErrors({});
@@ -120,6 +122,7 @@ const Task = () => {
       name: taskName,
       description: taskDesc,
       userNames: userName,
+      AssignedUserId: assigneduserId,
       priorityName: taskPriority,
       createdBy: userId,
     };
@@ -174,7 +177,7 @@ const Task = () => {
         setTaskName(updatedTask.name);
         setTaskDesc(updatedTask.description);
         setUserName(updatedTask.userNames?.userName || "")
-        console.log(userName, "userNameuserName");
+        // console.log(userName, "userNameuserName");
 
         setTaskPriority(updatedTask.priorityName?.taskPriority || "");
         setEditingTaskId(updatedTask._id);
@@ -385,6 +388,7 @@ const Task = () => {
                         onChange={(e) => {
                           const selectedUser = taskUserNames.find(user => user._id === e.target.value);
                           setUserName(selectedUser ? selectedUser.name : "");
+                          setAssigneduserId(selectedUser ? selectedUser._id : "");
                         }}
                       >
                         <option value="">Select User</option>

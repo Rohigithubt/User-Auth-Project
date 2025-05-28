@@ -95,7 +95,9 @@ async function register(req, res) {
 }
 
 async function registerUser(req, res) {
-    const { name, email } = req.body;
+    const { name, email ,userstatus} = req.body;
+    console.log(req.body,"req.body");
+    
     console.log(req.body);
 
     try {
@@ -138,42 +140,50 @@ async function registerUser(req, res) {
 }
 
 
-async function login(req,res){
-    const { email, password } = req.body;
-    try{
-        
-        const user = await User.findOne({ email});
-        console.log(user,"user");
-        if (!user) {
-            return res.status(401).json({ status: false, error: 'Incorrect Email ID or Password !' });
-        }
-        const passwordMatch = await bcrypt.compare(password, user.password);
-        if (!passwordMatch) {
-            return res.status(401).json({status: false, error: 'Incorrect email ID or password ' });
-        }
-        const token = jwt.sign({ userId: user._id }, process.env.SESSION_SECRET, {
-            expiresIn: '2h',
-        });
+async function login(req, res) {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    console.log(user, "user");
 
-        user.token = token;
-        await user.save();
-        res.status(200).json({
-            status: true,
-            user: {
-              _id: user._id,
-              name: user.name,
-              email: user.email,
-               profileImage: user.profileImage || "",
-               createdBy:user.createdBy || "null",
-            },
-            token
-          });
-
-          
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ error: 'Login failed' });
+    if (!user) {
+      return res.status(401).json({ status: false, error: 'Incorrect Email ID or Password!' });
     }
+
+    // Check if user is active
+    if (!user.userstatus) {
+      return res.status(403).json({ status: false, error: 'User cannot login due to status: Inactive' });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ status: false, error: 'Incorrect Email ID or Password' });
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.SESSION_SECRET, {
+      expiresIn: '2h',
+    });
+
+    user.token = token;
+    await user.save();
+
+    res.status(200).json({
+      status: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        userstatus: user.userstatus,
+        profileImage: user.profileImage || "",
+        createdBy: user.createdBy || "null",
+      },
+      token
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Login failed' });
+  }
 }
 
 async function editprofile(req,res){
