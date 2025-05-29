@@ -17,7 +17,7 @@ const TaskSchema = new Schema({
     },
     isDeleted: {
         type: Boolean,
-        required: true, 
+        required: true,
         default: false,
     },
     priorityName: {
@@ -25,14 +25,20 @@ const TaskSchema = new Schema({
         required: true,
     },
 
+    workStatus: {
+        type: String,
+        enum: ['Completed', 'Pending', 'Working', 'Hold'],
+        required: true,
+        default: 'Pending'
+    },
     userNames: {
-         type: String,
+        type: String,
         required: true,
     },
     AssignedUserId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    } ,
+    },
 
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,

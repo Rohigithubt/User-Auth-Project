@@ -23,7 +23,7 @@ const SidebarUser = ({ onClick }) => {
       </li>
 
       <li className="pc-item">
-        <NavLink to="/" end onClick={() => onClick?.('dashboard')} className={linkClasses}>
+        <NavLink to="/user-dashboard" end onClick={() => onClick?.('dashboard')} className={linkClasses}>
           <span className="pc-micon"><i className="ti ti-dashboard"></i></span>
           <span className="pc-mtext">Dashboard</span>
         </NavLink>

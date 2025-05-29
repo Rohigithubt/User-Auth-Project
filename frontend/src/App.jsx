@@ -23,6 +23,7 @@ import ProtectedLayout from './assets/src/html/layouts/ProtectedLayout';
 import UserTask from './assets/src/html/layouts/UserTask';
 import SidebarUser from './assets/src/html/layouts/SidebarUser';
 import UserTaskList from './assets/src/html/layouts/UserTaskList';
+import UserDashboard from './assets/src/html/dashboard/UserDashboard';
 
 const App = () => {
   return (
@@ -38,6 +39,7 @@ const App = () => {
         <Route element={<ProtectedRoute />}>
           <Route element={<ProtectedLayout />}>
             <Route path="/" element={<Dashboard />} />
+            <Route path='/user-dashboard' element={<UserDashboard />} />
             <Route path="/header" element={<Header />} />
             <Route path="/sidebar-menu" element={<SidebarMenu />} />
             <Route path='/sidebar-user' element={<SidebarUser />} />

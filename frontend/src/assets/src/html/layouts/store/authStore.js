@@ -14,7 +14,7 @@ export const useAuthStore = create((set) => ({
   isLoading: false,
   message: null,
 
-   index: async (userId) => {
+  index: async (userId) => {
     set({ isLoading: true, error: null });
     try {
       console.log("userId:", userId);
@@ -31,26 +31,26 @@ export const useAuthStore = create((set) => ({
   },
 
   indexUser: async (userId) => {
-  set({ isLoading: true, error: null });
-  try {
-    console.log(userId, "userIduserId");
+    set({ isLoading: true, error: null });
+    try {
+      console.log(userId, "userIduserId");
 
-    const response = await axios.post(`${API_URL}/index-user`, { userId: userId });
-    set({ isLoading: false });
-    return response.data;
-  } catch (error) {
-    set({ error: error.response?.data?.error || "Something went wrong", isLoading: false });
-    throw error;
-  }
-},
+      const response = await axios.post(`${API_URL}/index-user`, { userId: userId });
+      set({ isLoading: false });
+      return response.data;
+    } catch (error) {
+      set({ error: error.response?.data?.error || "Something went wrong", isLoading: false });
+      throw error;
+    }
+  },
 
 
   register: async (name, email, password) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL}/register`, { name, email, password});
+      const response = await axios.post(`${API_URL}/register`, { name, email, password });
 
-      
+
       set({ user: response.data.user, isAuthenticated: true, isLoading: false });
     } catch (error) {
       set({ error: error.response?.data?.message || "Error signing up", isLoading: false });
@@ -58,64 +58,66 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-registerUser: async(payload) => {
-  console.log(payload,"payload88");
-  
-  set({ isLoading: true, error: null });
-  try {
-    console.log("object")
-    const response = await axios.post(`${API_URL}/register-user`, payload);
-    console.log(API_URL,"API_URL");
-    
-    console.log(response,"response");
-    console.log(payload,"payload55");
+  registerUser: async (payload) => {
+    console.log(payload, "payload88");
 
-    
+    set({ isLoading: true, error: null });
+    try {
+      console.log("object")
+      const response = await axios.post(`${API_URL}/register-user`, payload);
+      console.log(API_URL, "API_URL");
 
-    if (response.data?.status) {
-      console.log(response.data?.status,"response.data?.status");
-      
+      console.log(response, "response");
+      console.log(payload, "payload55");
+
+
+
+      if (response.data?.status) {
+        console.log(response.data?.status, "response.data?.status");
+
+        set({
+          user: payload,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+      } else {
+        throw new Error(response.data?.message || "Registration failed");
+      }
+
+      return response.data;
+    } catch (error) {
       set({
-        user: payload, 
-        isAuthenticated: true,
+        error: error.response?.data?.message || "Error signing up",
         isLoading: false,
       });
-    } else {
-      throw new Error(response.data?.message || "Registration failed");
+      throw error;
     }
+  },
 
-    return response.data;
-  } catch (error) {
-    set({
-      error: error.response?.data?.message || "Error signing up",
-      isLoading: false,
-    });
-    throw error;
-  }
-},
-  
   login: async (email, password) => {
-  set({ isLoading: true, error: null });
-  try {
-    const response = await axios.post(`${API_URL}/login`, { email, password });
-    const { token, user } = response.data;
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.post(`${API_URL}/login`, { email, password });
+      const { token, user } = response.data;
 
-    localStorage.setItem('token', token);
-    localStorage.setItem('userId', user._id); 
-    localStorage.setItem('createdBy',user.createdBy); 
+      localStorage.setItem('token', token);
+      localStorage.setItem('userId', user._id);
+      localStorage.setItem('createdBy', user.createdBy);
+      // localStorage.setItem('AssignedUserId',user.AssignedUserId);
 
-    set({ user, isAuthenticated: true, error: null, isLoading: false });
-    return response;
-  } catch (error) {
-    set({ error: error.response?.data?.message || "Error logging in", isLoading: false });
-    throw error;
-  }
-},
+      set({ user, isAuthenticated: true, error: null, isLoading: false });
+      return response;
+    } catch (error) {
+      set({ error: error.response?.data?.message || "Error logging in", isLoading: false });
+      throw error;
+    }
+  },
 
   logout: async () => {
     set({ isLoading: true, error: null });
     try {
       await axios.post(`${API_URL}/logout`);
+      localStorage.clear();
       set({ user: null, isAuthenticated: false, error: null, isLoading: false });
     } catch (error) {
       set({ error: "Error logging out", isLoading: false });
@@ -160,7 +162,7 @@ registerUser: async(payload) => {
     }
   },
 
-    editProfile: async (userId) => {
+  editProfile: async (userId) => {
     set({ isLoading: true, error: null });
     try {
       const token = localStorage.getItem('token');
@@ -195,6 +197,27 @@ registerUser: async(payload) => {
       throw error;
     }
   },
+
+
+
+  updateTaskStatus: async (taskData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL3}/update-status`, taskData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      set({ isLoading: false });
+      return response.data;
+    } catch (error) {
+      set({
+        error: error.response?.data?.error || "Failed to update task status",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
 
   destroy: async (userId) => {
     set({ isLoading: true, error: null });
@@ -232,14 +255,14 @@ registerUser: async(payload) => {
 
 
 
-  
+
 
   indexPriority: async (userId) => {
     set({ isLoading: true, error: null });
     try {
-      console.log(userId,"userIduserId");
-      
-      const response = await axios.post(`${API_URL2}`,{userId:userId});
+      console.log(userId, "userIduserId");
+
+      const response = await axios.post(`${API_URL2}`, { userId: userId });
       set({ isLoading: false });
       return response.data;
     } catch (error) {
@@ -248,10 +271,10 @@ registerUser: async(payload) => {
     }
   },
 
-  createPriority: async (title, isactive,userId) => {
+  createPriority: async (title, isactive, userId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL2}/create`, { name: title, status: isactive , createdBy: userId});
+      const response = await axios.post(`${API_URL2}/create`, { name: title, status: isactive, createdBy: userId });
       set({ isLoading: false });
       return response.data;
     } catch (error) {
@@ -276,8 +299,8 @@ registerUser: async(payload) => {
     set({ isLoading: true, error: null });
     try {
       const response = await axios.post(`${API_URL2}/update`, priorityData);
-      console.log(priorityData,"priorityDatapriorityData");
-      
+      console.log(priorityData, "priorityDatapriorityData");
+
       set({ isLoading: false });
       return response.data;
     } catch (error) {
@@ -304,10 +327,10 @@ registerUser: async(payload) => {
   taskIndex: async (userId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL3}/`,{userId:userId});
-      console.log(response.data,"ressssss");
-      
-      
+      const response = await axios.post(`${API_URL3}/`, { userId: userId });
+      // console.log(response.data, "ressssss");
+
+
       set({ isLoading: false });
       return response.data;
     } catch (error) {
@@ -319,10 +342,10 @@ registerUser: async(payload) => {
   createTask: async (taskData) => {
     try {
       const response = await axios.post(`${API_URL3}/create`, taskData);
-      console.log(response,"responseeeeeeeee");
+      console.log(response, "responseeeeeeeee");
 
-      console.log(taskData,"taskData");
-      
+      console.log(taskData, "taskData");
+
       return response.data;
     } catch (error) {
       console.error("Error creating task:", error);

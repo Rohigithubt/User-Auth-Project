@@ -19,8 +19,8 @@ const UserTask = () => {
   const [apiError, setApiError] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
-  console.log(userstate,"userstate");
-  
+  console.log(userstate, "userstate");
+
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -79,8 +79,7 @@ const UserTask = () => {
       userstatus: userstate,
       createdBy: userId,
     };
-    // console.log(payload,"payload11");
-    
+
 
     try {
       let response;
@@ -90,13 +89,12 @@ const UserTask = () => {
         if (response?.status) toast.success("User updated successfully!");
       } else {
         response = await registerUser(payload);
-        // console.log(payload,"payload22");
-        // console.log(response,"response22");
 
-        
-   
 
-        
+
+
+
+
         if (response?.status) toast.success("User created successfully!");
       }
 
@@ -300,7 +298,7 @@ const UserTask = () => {
                           <td>{indexOfFirst + idx + 1}</td>
                           <td title={task.name}>{task.name || "No user"}</td>
                           <td title={task.email}>{task.email}</td>
-                          <td title={task.userstatus}>{task.userstatus? "Active" :"Inactive"}</td>
+                          <td title={task.userstatus}>{task.userstatus ? "Active" : "Inactive"}</td>
                           <td>
                             <button
                               className="btn btn-sm btn-warning me-2"
@@ -352,7 +350,6 @@ const UserTask = () => {
           </div>
         </div>
 
-        {/* Create/Edit Modal */}
         <div className="modal fade" id="taskModal" tabIndex="-1" aria-hidden="true">
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content p-3">
