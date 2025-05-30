@@ -12,7 +12,7 @@ const SidebarUser = ({ onClick }) => {
   return (
     <ul className="pc-sidebar space-y-2">
       <li className="pc-item text-center my-3">
-        <NavLink to="/" onClick={() => onClick?.('dashboard')}>
+        <NavLink to="/user-dashboard" onClick={() => onClick?.('dashboard')}>
           <img
             src={myImage}
             alt="logo"

@@ -1,101 +1,148 @@
-import React, { useState } from 'react';
-import Header from '../../../dist/layouts/Header';
+import React, { useEffect, useState } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import { useAuthStore } from "../layouts/store/authStore";
 
 const Dashboard = () => {
+  const { taskIndex, index } = useAuthStore();
 
+  const cardColors = [
+    "#4e73df", "#1cc88a", "#f6c23e", "#36b9cc",
+    "#e74a3b", "#fd7e14", "#20c997", "#6f42c1"
+  ];
 
+  const pieColors = ["#4e73df", "#1cc88a", "#f6c23e"];
+  const barColors = ["#4e73df", "#1cc88a", "#f6c23e", "#36b9cc", "#e74a3b"];
+
+  const [cards, setCards] = useState([]);
+  const [chartData, setChartData] = useState([]);
+  const [userPieData, setUserPieData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+
+        const response = await index(userId);
+        const users = response.data.filter((user) => user.createdBy == userId);
+
+        const totalUsers = users.length;
+        const activeUsers = users.filter(user => user.userstatus === true).length;
+        const inactiveUsers = totalUsers - activeUsers;
+
+        const taskresponse = await taskIndex(userId);
+        const tasks = taskresponse.data;
+
+        const totalTasks = tasks.length;
+        const completed = tasks.filter(task => task.workStatus === "Completed").length;
+        const pending = tasks.filter(task => task.workStatus === "Pending").length;
+        const working = tasks.filter(task => task.workStatus === "Working").length;
+        const holding = tasks.filter(task => task.workStatus === "Hold").length;
+
+        setCards([
+          { title: "Total Users", value: totalUsers },
+          { title: "Active Users", value: activeUsers },
+          { title: "Inactive Users", value: inactiveUsers },
+          { title: "Total Tasks", value: totalTasks },
+          { title: "Total Completed Task", value: completed },
+          { title: "Total Pending Task", value: pending },
+          { title: "Total Working Task", value: working },
+          { title: "Total Hold Task", value: holding },
+        ]);
+
+        setChartData([
+          { name: "Total Task", value: totalTasks },
+          { name: "Completed", value: completed },
+          { name: "Pending", value: pending },
+          { name: "Working", value: working },
+          { name: "Hold", value: holding },
+        ]);
+
+        setUserPieData([
+          { name: "Total Users", value: totalUsers },
+          { name: "Active Users", value: activeUsers },
+          { name: "Inactive Users", value: inactiveUsers },
+        ]);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      }
+    };
+
+    fetchData();
+  }, [taskIndex]);
 
   return (
-    
     <div className="pc-container">
       <div className="pc-content">
         <div className="row">
-          {[
-            {
-              title: 'Total Page Views',
-              value: '4,42,236',
-              badge: { text: '59.3%', className: 'bg-light-primary border border-primary', icon: 'ti ti-trending-up' },
-              note: 'You made an extra 35,000 this year',
-              highlight: '35,000',
-              textClass: 'text-primary',
-            },
-            {
-              title: 'Total Users',
-              value: '78,250',
-              badge: { text: '70.5%', className: 'bg-light-success border border-success', icon: 'ti ti-trending-up' },
-              note: 'You made an extra 8,900 this year',
-              highlight: '8,900',
-              textClass: 'text-success',
-            },
-            {
-              title: 'Total Order',
-              value: '18,800',
-              badge: { text: '27.4%', className: 'bg-light-warning border border-warning', icon: 'ti ti-trending-down' },
-              note: 'You made an extra 1,943 this year',
-              highlight: '1,943',
-              textClass: 'text-warning',
-            },
-            {
-              title: 'Total Sales',
-              value: '$35,078',
-              badge: { text: '27.4%', className: 'bg-light-danger border border-danger', icon: 'ti ti-trending-down' },
-              note: 'You made an extra $20,395 this year',
-              highlight: '$20,395',
-              textClass: 'text-danger',
-            },
-          ].map((card, index) => (
-            <div className="col-md-6 col-xl-3" key={index}>
-              <div className="card">
+          {cards.map((card, index) => (
+            <div className="col-md-6 col-xl-4" key={index}>
+              <div className="card" style={{ backgroundColor: cardColors[index % cardColors.length], color: "#fff" }}>
                 <div className="card-body">
-                  <h6 className="mb-2 f-w-400 text-muted">{card.title}</h6>
-                  <h4 className="mb-3">
-                    {card.value} <span className={`badge ${card.badge.className}`}><i className={card.badge.icon}></i> {card.badge.text}</span>
-                  </h4>
-                  <p className="mb-0 text-muted text-sm">You made an extra <span className={card.textClass}>{card.highlight}</span> this year</p>
+                  <h6 className="mb-2 f-w-400 text-light">{card.title}</h6>
+                  <h4 className="mb-0">{card.value}</h4>
                 </div>
               </div>
             </div>
           ))}
 
-          <div className="col-md-12 col-xl-8">
-            <div className="d-flex align-items-center justify-content-between mb-3">
-              <h5 className="mb-0">Unique Visitor</h5>
-              <ul className="nav nav-pills justify-content-end mb-0">
-                <li className="nav-item" role="presentation">
-                  <button className="nav-link" data-bs-toggle="pill" data-bs-target="#chart-tab-home" type="button">Month</button>
-                </li>
-                <li className="nav-item" role="presentation">
-                  <button className="nav-link active" data-bs-toggle="pill" data-bs-target="#chart-tab-profile" type="button">Week</button>
-                </li>
-              </ul>
-            </div>
+          <div className="col-12 mt-4">
             <div className="card">
               <div className="card-body">
-                <div className="tab-content">
-                  <div className="tab-pane" id="chart-tab-home">
-                    <div id="visitor-chart-1"></div>
+                <h5>Task & User Overview</h5>
+                <div className="row">
+                  <div className="col-md-6">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={chartData}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="value">
+                          {chartData.map((entry, index) => (
+                            <Cell key={`bar-${index}`} fill={barColors[index % barColors.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
-                  <div className="tab-pane show active" id="chart-tab-profile">
-                    <div id="visitor-chart"></div>
+                  <div className="col-md-6">
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={userPieData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          label
+                        >
+                          {userPieData.map((entry, index) => (
+                            <Cell key={`pie-${index}`} fill={pieColors[index % pieColors.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-          <div className="col-md-12 col-xl-4">
-            <h5 className="mb-3">Income Overview</h5>
-            <div className="card">
-              <div className="card-body">
-                <h6 className="mb-2 f-w-400 text-muted">This Week Statistics</h6>
-                <h3 className="mb-3">$7,650</h3>
-                <div id="income-overview-chart"></div>
-              </div>
-            </div>
-          </div>
-
         </div>
-      </div>
+      </div>  
     </div>
   );
 };

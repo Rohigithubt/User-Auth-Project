@@ -1,45 +1,61 @@
 import React, { useEffect, useState } from "react";
-import { BarChart,Bar,XAxis,YAxis,Tooltip,Legend, ResponsiveContainer,} from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell
+} from "recharts";
 
 import { useAuthStore } from "../layouts/store/authStore";
 
 const UserDashboard = () => {
   const { taskIndex } = useAuthStore();
-  
+
   const [cards, setCards] = useState([
-    { title: "Total Tasks", value: 0},
-    { title: "Completed", value: 0 },
-    { title: "Pending", value: 0 },
-    { title: "Working", value: 0 },
-    { title: "Holding", value: 0 },
+    { title: "Total Tasks", value: 0, color: "#4e73df" },
+    { title: "Completed", value: 0, color: "#1cc88a" },
+    { title: "Pending", value: 0, color: "#f6c23e" },
+    { title: "Working", value: 0, color: "#36b9cc" },
+    { title: "Holding", value: 0, color: "#e74a3b" },
   ]);
+
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const userId = localStorage.getItem("createdBy");
-        console.log(userId,"uesrsss");
-        
-        const response = await taskIndex(userId);
-        
+        const createdBy = localStorage.getItem("createdBy");
+        const userId = localStorage.getItem("userId");
+
+        const response = await taskIndex(createdBy);
 
         if (response?.status) {
           const tasks = response.data;
+          const assignedTasks = tasks.filter(task => task.AssignedUserId === userId);
 
-          const total = tasks.length;
-          const completed = tasks.filter((t) => t.workStatus === "Completed").length;
-          const pending = tasks.filter((t) => t.workStatus === "Pending").length;
-          const working = tasks.filter((t) => t.workStatus === "Working").length;
-          const holding = tasks.filter((t) => t.workStatus === "Hold").length;
+          const total = assignedTasks.length;
+          let completed = 0, pending = 0, working = 0, holding = 0;
 
-          setCards([
-            { title: "Total Tasks", value: total },
-            { title: "Completed", value: completed },
-            { title: "Pending", value: pending },
-            { title: "Working", value: working },
-            { title: "Holding", value: holding },
-          ]);
+          assignedTasks.forEach(task => {
+            if (task.workStatus === "Completed") completed++;
+            else if (task.workStatus === "Pending") pending++;
+            else if (task.workStatus === "Working") working++;
+            else if (task.workStatus === "Hold") holding++;
+          });
+
+          const updatedCards = [
+            { title: "Total Tasks", value: total, color: "#4e73df" },
+            { title: "Completed", value: completed, color: "#1cc88a" },
+            { title: "Pending", value: pending, color: "#f6c23e" },
+            { title: "Working", value: working, color: "#36b9cc" },
+            { title: "Holding", value: holding, color: "#e74a3b" },
+          ];
+
+          setCards(updatedCards);
 
           setChartData([
             { name: "Total", value: total },
@@ -57,15 +73,17 @@ const UserDashboard = () => {
     fetchTasks();
   }, [taskIndex]);
 
+  const barColors = ["#4e73df", "#1cc88a", "#f6c23e", "#36b9cc", "#e74a3b"];
+
   return (
     <div className="pc-container">
       <div className="pc-content">
         <div className="row">
           {cards.map((card, index) => (
-            <div className="col-md-6 col-xl-3" key={index}>
-              <div className="card">
+            <div className="col-md-6 col-xl-2" key={index}>
+              <div className="card" style={{ backgroundColor: card.color, color: "#fff" }}>
                 <div className="card-body">
-                  <h6 className="mb-2 f-w-400 text-muted">{card.title}</h6>
+                  <h6 className="mb-2 f-w-400 text-light">{card.title}</h6>
                   <h4 className="mb-0">{card.value}</h4>
                 </div>
               </div>
@@ -82,7 +100,11 @@ const UserDashboard = () => {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="value" fill="#5e72e4" />
+                    <Bar dataKey="value">
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={barColors[index % barColors.length]} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>

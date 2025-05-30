@@ -413,7 +413,7 @@ const Task = () => {
                       <select
                         id="taskPriority"
                         className={`form-control ${errors.priority ? "is-invalid" : ""}`}
-                        value={taskPriority}  // This should store the name string
+                        value={taskPriority}  
                         onChange={(e) => {
                           const selectedPriority = priorities.find(p => p._id === e.target.value);
                           setTaskPriority(selectedPriority ? selectedPriority.name : "");
